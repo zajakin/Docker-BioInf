@@ -1,0 +1,69 @@
+sudo apt update
+sudo apt upgrade
+sudo apt dist-upgrade
+sudo apt install docker-compose quota -y
+sudo addgroup $USER docker
+sudo systemctl enable docker
+cat /etc/fstab | grep quota  # should be usrquota,grpquota   sudo mcedit /etc/fstab
+sudo quotacheck -ugM /
+sudo reboot
+sudo quota -vs $USER
+sudo setquota -u $USER 1900G 2T 0 0 /
+docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
+
+docker pull debian:testing
+rm -r Docker-BioInf
+mkdir Docker-BioInf
+
+#  cufflinks trnascan-se fastx-toolkit 
+tee Docker-BioInf/Dockerfile << END
+FROM debian:testing
+RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \\
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils && \\
+	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \\
+	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \\
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \\
+		locales sudo mc wget procps psmisc htop sshfs \\
+		shellinabox ssh tmux supervisor bash-completion \\
+		policykit-1-gnome dbus-x11 firefox-esr geany \\
+		lxde-core lxlauncher lxterminal lxmenu-data lxtask \\
+		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc \\
+		gdebi-core r-base-core git jupyter-notebook python3-pip fastp cnvkit seqtk \\
+		bowtie bowtie2 cutadapt samtools fastqc ncbi-blast+ kraken2 python3-htseq rna-star \\
+		picard-tools bbmap trimmomatic tophat radiant && \\
+	apt-get autoremove -y && \\
+	apt-get autoclean -y
+# GTK 2 and 3 settings for icons and style, wallpaper
+RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \\
+	mkdir -p /etc/skel/.config/gtk-3.0 && \\
+	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \\
+	mkdir -p /etc/skel/.config/pcmanfm/LXDE && \\
+	echo '[*]\nwallpaper_mode=stretch\nwallpaper_common=1\nwallpaper=/usr/share/lxde/wallpapers/lxde_blue.jpg\n' > /etc/skel/.config/pcmanfm/LXDE/desktop-items-0.conf && \\
+	mkdir -p /etc/skel/.config/libfm && \\
+	echo '[config]\nquick_exec=1\nterminal=lxterminal\n' > /etc/skel/.config/libfm/libfm.conf && \\
+	mkdir -p /etc/skel/.config/openbox/ && \\
+	echo '<?xml version="1.0" encoding="UTF-8"?>\n<theme>\n  <name>Clearlooks</name>\n</theme>\n' > /etc/skel/.config/openbox/lxde-rc.xml && \\
+	mkdir -p /etc/skel/.config/ && \
+	echo '[Added Associations]\ntext/plain=mousepad.desktop;\n' > /etc/skel/.config/mimeapps.list
+ENV NOTVISIBLE "in users profile"
+RUN sed -i -e 's/# en_GB.UTF-8 UTF-8/en_GB.utf8 UTF-8/' /etc/locale.gen && \\
+	sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.utf8 UTF-8/' /etc/locale.gen && \\
+	sed -i -e 's/# lv_LV.UTF-8 UTF-8/lv_LV.utf8 UTF-8/' /etc/locale.gen && \\
+	locale-gen && \\
+	mkdir -p /run/sshd /var/log/supervisor && \\
+	echo "export VISIBLE=now" >> /etc/profile
+RUN wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudio-server-latest-amd64.deb && \\
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \\
+		./rstudio-server-latest-amd64.deb && \\
+	apt-get autoremove -y && \\
+	apt-get autoclean -y && \\
+	rm rstudio-server-latest-amd64.deb
+CMD ["/usr/bin/supervisord"]
+END
+docker build -t Docker-BioInf Docker-BioInf
+
+sudo mkdir -p /data
+sudo chmod +rx /data
+sudo chown $USER /data
+docker volume create --opt type=none --opt device=/data --opt o=bind,size=2TB --name data
+
