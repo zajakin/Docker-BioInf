@@ -40,15 +40,16 @@ sudo useradd -g docker -N -s /bin/bash --create-home $nuser
 sudo quota -vs $nuser
 sudo setquota -u $nuser $quota $quota 0 0 /
 cd /home/$nuser
+echo $nuser | sudo tee nuser
 echo $base | sudo tee base
 echo $portD | sudo tee portD
 echo $quota | sudo tee quota
 echo $pass | sudo tee pass
 
 sudo su $nuser
-nuser=$USER
-uid=$(id -u)
-gid=$(id -g)
+nuser=`cat nuser`
+uid=$(id -u $nuser)
+gid=$(id -g $nuser)
 base=`cat base`
 portD=`cat portD`
 quota=`cat quota`
@@ -173,7 +174,7 @@ END
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock  --net dockers-net --ip=$base
 docker run -d --name=$nuser -v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d \
 		-p ${portD}0:80 -p ${portD}1:443 -p ${portD}2:22 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}8:8888 \
-		--workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always Docker-BioInf
+		--workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always docker-bioinf
 
 tee novnc.conf << END
 [program:1_novnc_1_novnc]

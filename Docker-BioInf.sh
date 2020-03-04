@@ -30,24 +30,26 @@ if [ ! -e "Docker-BioInf-per-student.sh" ]; then
 	chmod +x Docker-BioInf-per-student.sh
 fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
-grep -v "^#" users.tsv | uniq | xargs -l -i -P 10 Docker-BioInf-per-student.sh {}
+grep -v "^#" users.tsv | uniq | xargs -l ./Docker-BioInf-per-student.sh
 # u:b:o:q:p:m
 
 exit  # not start later code
 
+cat /etc/passwd | grep /home/
 echo $nuser
 docker top $nuser 
 sudo repquota -s /
 docker images
 docker ps -a
+docker volume ls
 
 docker stop $nuser 
 docker rm $nuser 
 docker volume rm $nuser
-docker rmi $nuser/debian 
 sudo userdel --remove $nuser
 
 docker stop $(docker ps -a -q)
+docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 docker rm $(docker ps -a -q)
 docker rmi $(docker images -q)
 
