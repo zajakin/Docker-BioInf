@@ -33,6 +33,7 @@ if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/
 
 # Add users and create Dockers
 grep -v "^#" users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
+cat ../user*/docker.txt > docker.txt
 
 exit  # Not start later code automatically
 # check users and space
