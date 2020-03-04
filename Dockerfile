@@ -11,10 +11,10 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc \
 		gdebi-core r-base-core git jupyter-notebook python3-pip fastp cnvkit seqtk \
 		bowtie bowtie2 cutadapt samtools fastqc ncbi-blast+ kraken2 python3-htseq rna-star \
-		picard-tools bbmap trimmomatic cufflinks trnascan-se fastx-toolkit radiant && \
+		picard-tools bbmap trimmomatic radiant && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   #  cufflinks trnascan-se fastx-toolkit tophat 
+# GTK 2 and 3 settings for icons and style, wallpaper   #  tophat cufflinks trnascan-se fastx-toolkit 
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
