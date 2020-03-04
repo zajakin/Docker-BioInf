@@ -33,7 +33,7 @@ fi
 if [ "$base" == "" ] ; then exit; fi
 if [ ! -e "usedports" ] ; then echo 2000 > usedports ; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
-echo $portD | tee -a usedports
+echo $portD >> usedports
 if [ "$quota" == "" ] ; then quota="2T" ; fi
 if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
 
@@ -305,7 +305,7 @@ docker restart $nuser
 # docker exec -it $nuser pkill supervisord
 # docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
 popd
-echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" | tee ~/docker.txt
+echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" >> ~/docker.txt
 
 docker top $nuser 
 exit # exit from su

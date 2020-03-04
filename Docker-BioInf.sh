@@ -26,11 +26,11 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	docker build -t docker-bioinf Docker-BioInf
 fi
 if [ ! -e "Docker-BioInf-per-student.sh" ]; then
-	wget https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
+	wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 	chmod +x Docker-BioInf-per-student.sh
 fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
-grep -v "^#" users.tsv | uniq | tr '\t' ' ' | xargs -l -i sudo bash -c ./Docker-BioInf-per-student.sh {}
+grep -v "^#" users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 # u:b:o:q:p:m
 
 exit  # not start later code
@@ -42,9 +42,9 @@ docker ps -a
 docker volume ls
 
 ls .. | grep user
-ls .. | grep user | xargs -l docker stop
-ls .. | grep user | xargs -l docker rm
-ls .. | grep user | xargs -l docker volume rm
+ls .. | grep user | xargs -l -P 10 docker stop
+ls .. | grep user | xargs -l -P 10 docker rm
+ls .. | grep user | xargs -l -P 10 docker volume rm
 ls .. | grep user | xargs -l sudo userdel --remove
 ls .. | grep user
 
