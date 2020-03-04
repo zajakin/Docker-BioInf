@@ -31,7 +31,6 @@ if [ `cat /etc/passwd | grep -c "^${nuser}:"` -ne 0 ] ; then
 	exit
 fi
 if [ "$base" == "" ] ; then exit; fi
-if [ ! -e "usedports" ] ; then echo 2000 > usedports ; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
 if [ "$quota" == "" ] ; then quota="2T" ; fi

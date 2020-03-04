@@ -29,8 +29,23 @@ if [ ! -e "Docker-BioInf-per-student.sh" ]; then
 	wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 	chmod +x Docker-BioInf-per-student.sh
 fi
+if [ ! -e "usedports" ] ; then echo 200 > usedports ; fi
+# Download sample of file with users login and pass
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
-
+# Or generate automatically
+# rm users.tsv
+base="serv1.edu.eu"
+quota="2T"
+count=42
+for i in {200..650}
+	do
+	if [ `grep -c "^$i$" usedports` -ne "0" ]; then continue; fi
+	if [ `grep -c -P "\-o\t$i\t" users.tsv` -ne "0" ]; then continue; fi
+	echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t\t" >> users.tsv
+	count=$[count-1]
+	if [ $count == 0 ]; then break; fi
+done
+cat  users.tsv
 # Add users and create Dockers
 grep -v "^#" users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 cat ../user*/docker.txt > docker.txt
