@@ -22,7 +22,7 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	docker pull debian:testing
 	rm -r Docker-BioInf
 	mkdir Docker-BioInf
-	wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile
+	if [ ! -e "Docker-BioInf/Dockerfile" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile ; fi
 	docker build -t docker-bioinf Docker-BioInf
 fi
 if [ ! -e "Docker-BioInf-per-student.sh" ]; then
@@ -30,9 +30,8 @@ if [ ! -e "Docker-BioInf-per-student.sh" ]; then
 	chmod +x Docker-BioInf-per-student.sh
 fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
-grep -v "^#" users.tsv | uniq | xargs -l -i -P 10 echo {}
+grep -v "^#" users.tsv | uniq | xargs -l -i -P 10 Docker-BioInf-per-student.sh {}
 # u:b:o:q:p:m
-Docker-BioInf-per-student.sh {}
 
 exit  # not start later code
 

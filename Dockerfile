@@ -11,7 +11,7 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc \
 		gdebi-core r-base-core git jupyter-notebook python3-pip fastp cnvkit seqtk \
 		bowtie bowtie2 cutadapt samtools fastqc ncbi-blast+ kraken2 python3-htseq rna-star \
-		picard-tools bbmap trimmomatic tophat radiant && \
+		picard-tools bbmap trimmomatic tophat2 radiant && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
 # GTK 2 and 3 settings for icons and style, wallpaper   #  cufflinks trnascan-se fastx-toolkit 
