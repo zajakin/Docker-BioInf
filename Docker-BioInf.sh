@@ -30,17 +30,21 @@ if [ ! -e "Docker-BioInf-per-student.sh" ]; then
 	chmod +x Docker-BioInf-per-student.sh
 fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
+
+# Add users and create Dockers
 grep -v "^#" users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
-# u:b:o:q:p:m
 
-exit  # not start later code
-
+exit  # Not start later code automatically
+# check users and space
 cat /etc/passwd | grep /home/
 sudo repquota -s /
 docker images
 docker ps -a
 docker volume ls
+docker system df
+docker system df -v
 
+# Delete user*
 ls .. | grep user
 ls .. | grep user | xargs -l -P 10 docker stop
 ls .. | grep user | xargs -l -P 10 docker rm
@@ -48,6 +52,7 @@ ls .. | grep user | xargs -l -P 10 docker volume rm
 ls .. | grep user | xargs -l sudo userdel --remove
 ls .. | grep user
 
+# Delete specific user
 nuser="user00"
 echo $nuser
 docker top $nuser 
@@ -56,14 +61,13 @@ docker rm $nuser
 docker volume rm $nuser
 sudo userdel --remove $nuser
 
+# Stop all dockers
 docker stop $(docker ps -a -q)
+# Remove no active dockers
 docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
+# Remove all dockers
 # docker rm $(docker ps -a -q)
+# Remove all docker images
 # docker rmi $(docker images -q)
-
+# Remove docker images without correct names
 docker rmi $(docker images | grep "<none> .*<none>" | awk '{print $3}') 
-docker images
-docker ps -a
-
-docker system df
-docker system df -v
