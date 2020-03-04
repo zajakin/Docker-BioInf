@@ -30,7 +30,7 @@ if [ ! -e "Docker-BioInf-per-student.sh" ]; then
 	chmod +x Docker-BioInf-per-student.sh
 fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
-grep -v "^#" users.tsv | uniq | xargs -l -i sudo bash -c ./Docker-BioInf-per-student.sh {}
+grep -v "^#" users.tsv | uniq | tr '\t' ' ' | xargs -l -i sudo bash -c ./Docker-BioInf-per-student.sh {}
 # u:b:o:q:p:m
 
 exit  # not start later code

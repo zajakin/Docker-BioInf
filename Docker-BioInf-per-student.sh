@@ -19,7 +19,7 @@ while getopts ":u:b:o:q:p:m:" opt; do
 done
 
 # nuser="user00";  base="serv1.edu.eu";  portD="2020";	quota=="2T";	pass="pass1200"; email="user00@gmail.com"
-echo "nuser=$nuser	base=$base	portD=$portD	quota=$quota	pass=$pass	email=$email"
+echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass email=$email"
 if [ "$nuser" == "" ] ; then
 	read -p "Error! No user name
 	Press enter to continue"
