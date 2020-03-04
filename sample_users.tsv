@@ -1,0 +1,3 @@
+-u	user00	-b	serv1.edu.eu	-o	200	-q	2T	-p	pass1200	-m	user00@edu.eu
+-u	user01	-b	serv1.edu.eu	-o	201	-q	2T	-p	pass1201	-m	user01@edu.eu
+-u	user02	-b	serv1.edu.eu	-o	202	-q	2T	-p	pass1202	-m	user02@edu.eu

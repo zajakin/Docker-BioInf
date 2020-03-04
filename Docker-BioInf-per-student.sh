@@ -1,9 +1,13 @@
-
-while getopts ":u:i:p:m:" opt; do
+#!/usr/bin/bash
+while getopts ":u:b:o:q:p:m:" opt; do
   case $opt in
     u) nuser="$OPTARG"
     ;;
-    i) IP="$OPTARG"
+    b) base="$OPTARG"
+    ;;
+    o) portD="$OPTARG"
+    ;;
+    q) quota="$OPTARG"
     ;;
     p) pass="$OPTARG"
     ;;
@@ -14,26 +18,51 @@ while getopts ":u:i:p:m:" opt; do
   esac
 done
 
-nuser="";    IP="";	pass=""; email=""
-# pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)
+# nuser="";  base="";  portD="1003";	quota=="";	pass=""; email=""
+if [ "$nuser" == "" ] ; then
+	read -p "Error! No user name
+	Press enter to continue"
+	exit
+fi
+if [ `cat /etc/passwd | grep -c "^${nuser}:"` -ne 0 ] ; then 
+	read -p "Error! User '$nuser' already exist
+	Press enter to continue"
+	exit
+fi
+if [ "$base" == "" ] ; then exit; fi
+if [ ! -e "usedports" ] ; then echo 2000 > usedports ; fi
+if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
+echo $portD | tee -a usedports
+if [ "$quota" == "" ] ; then quota="2T" ; fi
+if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
 
 sudo useradd -g docker -N -s /bin/bash --create-home $nuser
 sudo quota -vs $nuser
-sudo setquota -u $nuser 1900G 2T 0 0 /
+sudo setquota -u $nuser $quota $quota 0 0 /
 cd /home/$nuser
-echo $IP | sudo tee ip
+echo $base | sudo tee base
+echo $portD | sudo tee portD
+echo $quota | sudo tee quota
 echo $pass | sudo tee pass
 
 sudo su $nuser
 nuser=$USER
-pass=`cat pass`
 uid=$(id -u)
 gid=$(id -g)
-IP=`cat ip`
+base=`cat base`
+portD=`cat portD`
+quota=`cat quota`
+pass=`cat pass`
+IP="${base}:${portD}"
+URLsupervisor="http://${IP}0"
+URLnoVNC="https://${IP}1"
+URLshellinabox="https://${IP}4"
+URLrstudio="http://${IP}7"
+URLjupiter="https://${IP}8"
 
 rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
-docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=2TB,uid=$uid --name $nuser
+docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser
 docker volume inspect $nuser
 pushd /home/$nuser/setup
 openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
@@ -41,10 +70,35 @@ cat self.key self.pem > certificate.pem
 
 tee update.sh << END
 #!/bin/bash
-echo "<html><body><center><a href="http://$IP"><img src="https://www.home-assistant.io/images/screenshots/supervisor.png" /><br /><h1>Supervisor</h1></a><br /><table><tr align="center" valign="bottom"><td><a href="http://$IP:8787"><img src="https://d33wubrfki0l68.cloudfront.net/6942646e91236f9d6766b0bfdce65fc2bbcf4d03/1e04f/assets/img/rstudio-desktop-screen.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td><td><a href="https://$IP:8888"><img src="https://jupyter.org/assets/labpreview.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="https://$IP/vnc.html"><img src="https://i.ytimg.com/vi/b5tBNdncDNk/hqdefault.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td><td><a href="https://$IP:4200"><img src="https://linoxide.com/wp-content/uploads/2014/03/shellinabox_chrome_right_click.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td></tr></table></center></body></html>" > /usr/share/novnc/index.html
+wget https://www.home-assistant.io/images/screenshots/supervisor.png -O /usr/share/novnc/supervisor.png
+wget https://d33wubrfki0l68.cloudfront.net/6942646e91236f9d6766b0bfdce65fc2bbcf4d03/1e04f/assets/img/rstudio-desktop-screen.png -O /usr/share/novnc/rstudio.png
+wget https://jupyter.org/assets/labpreview.png -O /usr/share/novnc/jupyter.png
+wget https://i.ytimg.com/vi/b5tBNdncDNk/noVNC.jpg -O /usr/share/novnc/noVNC.png
+wget https://linoxide.com/wp-content/uploads/2014/03/shellinabox_chrome_right_click.png -O /usr/share/novnc/shellinabox.png
+ln -s /usr/share/novnc/supervisor.png /usr/lib/python3/dist-packages/supervisor/ui/supervisor.png
+ln -s /usr/share/novnc/rstudio.png /usr/lib/python3/dist-packages/supervisor/ui/rstudio.png
+ln -s /usr/share/novnc/jupyter.png /usr/lib/python3/dist-packages/supervisor/ui/jupyter.png
+ln -s /usr/share/novnc/noVNC.png /usr/lib/python3/dist-packages/supervisor/ui/noVNC.png
+ln -s /usr/share/novnc/shellinabox.png /usr/lib/python3/dist-packages/supervisor/ui/shellinabox.png
+echo '<html><body><center>
+<a href="$URLsupervisor"><img src="${URLnoVNC}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
+<table><tr align="center" valign="bottom">
+<td><a href="${URLrstudio}"><img src="${URLnoVNC}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLjupiter}"><img src="${URLnoVNC}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
+</tr><tr align="center" valign="bottom">
+<td><a href="${URLnoVNC}/vnc.html"><img src="${URLnoVNC}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLshellinabox}"><img src="${URLnoVNC}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
+</tr></table></center></body></html>' > /usr/share/novnc/index.html
 sed -i 's@^<table>.*@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center" valign="bottom"><td><a href="http://$IP:8787"><img src="https://d33wubrfki0l68.cloudfront.net/6942646e91236f9d6766b0bfdce65fc2bbcf4d03/1e04f/assets/img/rstudio-desktop-screen.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td><td><a href="https://$IP:8888"><img src="https://jupyter.org/assets/labpreview.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="https://$IP/vnc.html"><img src="https://i.ytimg.com/vi/b5tBNdncDNk/hqdefault.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td><td><a href="https://$IP:4200"><img src="https://linoxide.com/wp-content/uploads/2014/03/shellinabox_chrome_right_click.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td></tr></table>\n  <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+sed -i 's@  <div class="push">@<table><table><tr align="center" valign="bottom">
+<td><a href="${URLrstudio}"><img src="${URLsupervisor}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLjupiter}"><img src="${URLsupervisor}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
+</tr><tr align="center" valign="bottom">
+<td><a href="${URLnoVNC}/vnc.html"><img src="${URLsupervisor}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLshellinabox}"><img src="${URLsupervisor}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
+</tr></table>
+<div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
@@ -60,13 +114,6 @@ journalctl --disk-usage
 journalctl --vacuum-size=1000
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
-# /sbin/runuser -u $nuser -- echo "
-# c.NotebookApp.certfile = u'/etc/supervisor/conf.d/self.pem'
-# c.NotebookApp.keyfile = u'/etc/supervisor/conf.d/self.key'
-# c.NotebookApp.ip = '*'
-# c.NotebookApp.password = u'\$PASS'
-# c.NotebookApp.open_browser = False
-# c.NotebookApp.port = 8888
 echo "c.NotebookApp.password = u'\$PASS'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 
@@ -123,8 +170,10 @@ numprocs=1
 redirect_stderr=true
 END
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock 
-docker run -d --name=$nuser --net dockers-net --ip=$IP -v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d --workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always Docker-BioInf
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock  --net dockers-net --ip=$base
+docker run -d --name=$nuser -v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d \
+		-p ${portD}0:80 -p ${portD}1:443 -p ${portD}2:22 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}8:8888 \
+		--workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always Docker-BioInf
 
 tee novnc.conf << END
 [program:1_novnc_1_novnc]
@@ -249,10 +298,12 @@ END
 # numprocs=1
 
 chmod +r *
-docker exec -it $nuser pkill supervisord
+sleep 10s
+docker restart $nuser
+# docker exec -it $nuser pkill supervisord
 # docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
 popd
-echo "Docker ready. User: $nuser Password: $pass IP: $IP" | tee ~/docker.txt
+echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" | tee ~/docker.txt
 
 docker top $nuser 
 exit # exit from su

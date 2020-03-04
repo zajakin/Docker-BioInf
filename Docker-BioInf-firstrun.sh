@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 sudo apt update
 sudo apt upgrade
 sudo apt dist-upgrade
@@ -8,8 +9,12 @@ cat /etc/fstab | grep quota  # should be usrquota,grpquota   sudo mcedit /etc/fs
 sudo quotacheck -ugM /
 sudo reboot
 sudo quota -vs $USER
-sudo setquota -u $USER 1900G 2T 0 0 /
-docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
+# docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
+
+sudo mkdir -p /data
+sudo chmod +rx /data
+sudo chown $USER /data
+docker volume create --opt type=none --opt device=/data --opt o=bind,size=2TB --name data
 
 docker pull debian:testing
 rm -r Docker-BioInf
@@ -61,9 +66,3 @@ RUN wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudi
 CMD ["/usr/bin/supervisord"]
 END
 docker build -t Docker-BioInf Docker-BioInf
-
-sudo mkdir -p /data
-sudo chmod +rx /data
-sudo chown $USER /data
-docker volume create --opt type=none --opt device=/data --opt o=bind,size=2TB --name data
-

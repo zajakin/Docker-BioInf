@@ -1,5 +1,13 @@
-
-Docker-BioInf-per-student.sh -u aaa -i -p -m 
+#!/usr/bin/bash
+if [ `docker images Docker-BioInf | wc -l` -lt 2 ]; then
+	wget https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-firstrun.sh
+	bash -c ./Docker-BioInf-firstrun.sh
+fi
+if [ ! -e "Docker-BioInf-per-student.sh" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh ; fi
+if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
+grep -v "^#" users.tsv | xargs -l echo 
+# u:b:o:q:p:m
+Docker-BioInf-per-student.sh {}
 
 exit  # not start later code
 
