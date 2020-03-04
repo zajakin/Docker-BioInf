@@ -305,8 +305,6 @@ docker restart $nuser
 # docker exec -it $nuser pkill supervisord
 # docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
 popd
-echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" > ../docker.txt
-
-docker top $nuser 
+echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" > docker.txt
 exit # exit from su
 cd ~

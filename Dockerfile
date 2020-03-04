@@ -14,7 +14,7 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 		picard-tools bbmap trimmomatic radiant && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   #  tophat cufflinks trnascan-se fastx-toolkit 
+# GTK 2 and 3 settings for icons and style, wallpaper   # tophat cufflinks trnascan-se fastx-toolkit 
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
