@@ -57,7 +57,7 @@ pass=`cat pass`
 IP="${base}:${portD}"
 URLsupervisor="http://${IP}0"
 URLnoVNC="https://${IP}1"
-URLshellinabox="https://${IP}4"
+URLshellinabox="http://${IP}4"
 URLrstudio="http://${IP}7"
 URLjupiter="https://${IP}8"
 
@@ -212,10 +212,10 @@ stopsignal=KILL
 numprocs=1
 redirect_stderr=true
 END
-
+#  --cert=/etc/supervisor/conf.d
 tee shellinaboxd.conf << END
 [program:2_shellinaboxd]
-command=/usr/bin/shellinaboxd --cert=/etc/supervisor/conf.d --css /etc/shellinabox/options-available/00_White\ On\ Black.css
+command=/usr/bin/shellinaboxd -t --css /etc/shellinabox/options-available/00_White\ On\ Black.css
 stdout_logfile=/var/log/shellinaboxd.log
 autostart=false
 autorestart=true
