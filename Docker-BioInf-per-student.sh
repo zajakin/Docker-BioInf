@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-while getopts ":u:b:o:q:p:m:" opt; do
+while getopts ":u:b:o:q:p:s:m:" opt; do
   case $opt in
     u) nuser="$OPTARG"
     ;;
@@ -10,6 +10,8 @@ while getopts ":u:b:o:q:p:m:" opt; do
     q) quota="$OPTARG"
     ;;
     p) pass="$OPTARG"
+    ;;
+    s) start="$OPTARG"
     ;;
     m) email="$OPTARG"
     ;;
@@ -35,6 +37,7 @@ if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
 if [ "$quota" == "" ] ; then quota="2T" ; fi
 if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
+if [ "$start" == "" ] ; then start="h" ; fi
 
 sudo useradd -g docker -N -s /bin/bash --create-home $nuser
 sudo quota -vs $nuser
@@ -45,6 +48,7 @@ echo $base | sudo tee base
 echo $portD | sudo tee portD
 echo $quota | sudo tee quota
 echo $pass | sudo tee pass
+echo $start | sudo tee start
 
 sudo su $nuser
 nuser=`cat nuser`
@@ -54,12 +58,21 @@ base=`cat base`
 portD=`cat portD`
 quota=`cat quota`
 pass=`cat pass`
+start=`cat start`
 IP="${base}:${portD}"
-URLsupervisor="http://${IP}0"
-URLnoVNC="https://${IP}1"
-URLshellinabox="http://${IP}4"
-URLrstudio="http://${IP}7"
-URLjupiter="https://${IP}8"
+URLs="http://${IP}0"
+URLn="https://${IP}1"
+URLb="http://${IP}4"
+URLr="http://${IP}7"
+URLj="https://${IP}8"
+for st in r j n b h
+do
+	stv=start${st}
+	eval ${stv}="false"
+	if [ "$(echo $start | grep -c $st)" -ne "0" ]
+	then declare ${stv}="true"
+	fi
+done
 
 rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
@@ -71,33 +84,28 @@ cat self.key self.pem > certificate.pem
 
 tee update.sh << END
 #!/bin/bash
-wget https://www.home-assistant.io/images/screenshots/supervisor.png -O /usr/share/novnc/supervisor.png
-wget https://d33wubrfki0l68.cloudfront.net/6942646e91236f9d6766b0bfdce65fc2bbcf4d03/1e04f/assets/img/rstudio-desktop-screen.png -O /usr/share/novnc/rstudio.png
-wget https://jupyter.org/assets/labpreview.png -O /usr/share/novnc/jupyter.png
-wget https://i.ytimg.com/vi/b5tBNdncDNk/noVNC.jpg -O /usr/share/novnc/noVNC.png
-wget https://linoxide.com/wp-content/uploads/2014/03/shellinabox_chrome_right_click.png -O /usr/share/novnc/shellinabox.png
-ln -s /usr/share/novnc/supervisor.png /usr/lib/python3/dist-packages/supervisor/ui/supervisor.png
-ln -s /usr/share/novnc/rstudio.png /usr/lib/python3/dist-packages/supervisor/ui/rstudio.png
-ln -s /usr/share/novnc/jupyter.png /usr/lib/python3/dist-packages/supervisor/ui/jupyter.png
-ln -s /usr/share/novnc/noVNC.png /usr/lib/python3/dist-packages/supervisor/ui/noVNC.png
-ln -s /usr/share/novnc/shellinabox.png /usr/lib/python3/dist-packages/supervisor/ui/shellinabox.png
+for pic in supervisor rstudio jupyter noVNC shellinabox
+do
+	wget https://github.com/zajakin/Docker-BioInf/raw/master/\${pic}.png -O /usr/share/novnc/\${pic}.png
+	ln -s /usr/share/novnc/\${pic}.png /usr/lib/python3/dist-packages/supervisor/ui/\${pic}.png
+done
 echo '<html><body><center>
-<a href="$URLsupervisor"><img src="${URLnoVNC}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
+<a href="$URLs"><img src="${URLn}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
 <table><tr align="center" valign="bottom">
-<td><a href="${URLrstudio}"><img src="${URLnoVNC}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
-<td><a href="${URLjupiter}"><img src="${URLnoVNC}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
+<td><a href="${URLr}"><img src="${URLn}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLj}"><img src="${URLn}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
 </tr><tr align="center" valign="bottom">
-<td><a href="${URLnoVNC}/vnc.html"><img src="${URLnoVNC}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
-<td><a href="${URLshellinabox}"><img src="${URLnoVNC}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
+<td><a href="${URLn}/vnc.html"><img src="${URLn}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLb}"><img src="${URLn}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
 </tr></table></center></body></html>' > /usr/share/novnc/index.html
 sed -i 's@^<table>.*@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
 sed -i 's@  <div class="push">@<table><table><tr align="center" valign="bottom">
-<td><a href="${URLrstudio}"><img src="${URLsupervisor}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
-<td><a href="${URLjupiter}"><img src="${URLsupervisor}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
+<td><a href="${URLr}"><img src="${URLs}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLj}"><img src="${URLs}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
 </tr><tr align="center" valign="bottom">
-<td><a href="${URLnoVNC}/vnc.html"><img src="${URLsupervisor}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
-<td><a href="${URLshellinabox}"><img src="${URLsupervisor}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
+<td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLb}"><img src="${URLs}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
 </tr></table>
 <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
@@ -110,9 +118,6 @@ OLDCONF=\$(dpkg -l|grep "^rc"|awk '{print \$2}')
 env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
 rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
-journalctl --flush
-journalctl --disk-usage
-journalctl --vacuum-size=1000
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
 echo "c.NotebookApp.password = u'\$PASS'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
@@ -180,7 +185,7 @@ tee novnc.conf << END
 [program:1_novnc_1_novnc]
 command=websockify --web=/usr/share/novnc/ --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 443 localhost:5901
 stdout_logfile=/var/log/novnc.log
-autostart=false
+autostart=$startn
 autorestart=true
 user=root
 stopsignal=KILL
@@ -192,7 +197,7 @@ tee vnc.conf << END
 [program:1_novnc_2_vnc]
 command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 stdout_logfile=/var/log/vnc.log
-autostart=false
+autostart=$startn
 autorestart=true
 user=root
 stopsignal=QUIT
@@ -217,7 +222,7 @@ tee shellinaboxd.conf << END
 [program:2_shellinaboxd]
 command=/usr/bin/shellinaboxd -t --css /etc/shellinabox/options-available/00_White\ On\ Black.css
 stdout_logfile=/var/log/shellinaboxd.log
-autostart=false
+autostart=$startb
 autorestart=true
 user=root
 stopsignal=TERM
@@ -229,7 +234,7 @@ tee rserver.conf << END
 [program:3_rserver]
 command=/usr/lib/rstudio-server/bin/rserver --server-daemonize 0
 stdout_logfile=/var/log/rserver.log
-autostart=false
+autostart=$startr
 autorestart=true
 user=root
 stopsignal=TERM
@@ -242,7 +247,7 @@ tee jupyter_notebook.conf << END
 command=/sbin/runuser -u $nuser -- jupyter notebook -y --no-browser --ip=0.0.0.0 --certfile=/etc/supervisor/conf.d/self.pem --keyfile=/etc/supervisor/conf.d/self.key --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
 stdout_logfile=/var/log/jupyter_notebook.log
 directory=/home/$nuser
-autostart=false
+autostart=$startj
 autorestart=true
 user=root
 stopsignal=TERM
@@ -254,7 +259,7 @@ tee sshd.conf << END
 [program:5_sshd]
 command=/usr/sbin/sshd -D
 stdout_logfile=/var/log/sshd.log
-autostart=true
+autostart=$starth
 autorestart=true
 user=root
 stopsignal=KILL
@@ -304,6 +309,6 @@ docker restart $nuser
 # docker exec -it $nuser pkill supervisord
 # docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
 popd
-echo "Docker ready. User: $nuser Password: $pass Address: $URLsupervisor" > docker.txt
+echo "Docker ready. User: $nuser Password: $pass Address: $URLs" > docker.txt
 exit # exit from su
 cd ~
