@@ -92,22 +92,16 @@ done
 echo '<html><body><center>
 <a href="$URLs"><img src="${URLn}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
 <table><tr align="center" valign="bottom">
-<td><a href="${URLr}"><img src="${URLn}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
-<td><a href="${URLj}"><img src="${URLn}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
+<td><a href="${URLr}"><img src="${URLn}/rstudio.png" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLj}"><img src="${URLn}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td>
 </tr><tr align="center" valign="bottom">
-<td><a href="${URLn}/vnc.html"><img src="${URLn}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
-<td><a href="${URLb}"><img src="${URLn}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
+<td><a href="${URLn}/vnc.html"><img src="${URLn}/noVNC.png" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLb}"><img src="${URLn}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td>
 </tr></table></center></body></html>' > /usr/share/novnc/index.html
 sed -i 's@^<table>.*@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><table><tr align="center" valign="bottom">
-<td><a href="${URLr}"><img src="${URLs}/rstudio.png" width="300" height="200" /><br /><h1>R-Studio</h1></a></td>
-<td><a href="${URLj}"><img src="${URLs}/jupyter.png" width="300" height="200" /><br /><h1>Jupyter notebook</h1></a></td>
-</tr><tr align="center" valign="bottom">
-<td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.jpg" width="300" height="200" /><br /><h1>noVNC</h1></a></td>
-<td><a href="${URLb}"><img src="${URLs}/shellinabox.png" width="300" height="200" /><br /><h1>Shell in a box</h1></a></td>
-</tr></table>
-<div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+sed -i 's@  <div class="push">@<table><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLs}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLs}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLs}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
+  <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
@@ -192,7 +186,7 @@ stopsignal=KILL
 numprocs=1
 redirect_stderr=true
 END
-
+# LD_PRELOAD=/usr/lib/websockify/rebind.so exec python -m websockify --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 443  localhost:5901 --wrap-mode=ignore -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/user300/.vnc/passwd -xstartup /usr/bin/startlxde
 tee vnc.conf << END
 [program:1_novnc_2_vnc]
 command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
@@ -207,7 +201,7 @@ END
  
 tee remove_X_win_start_lock.conf << END
 [program:1_novnc_3_remove_X_win_start_lock]
-command=/bin/bash -c "pkill Xtigervnc && pkill mem-cached && pkill websockify && pkill ssh-agent && rm -f /tmp/.X1-lock && rm -fr /tmp/.X11-unix"
+command=/bin/bash -c "rm -f /tmp/.X1-lock; rm -fr /tmp/.X11-unix; pkill Xtigervnc; pkill mem-cached; pkill websockify; pkill ssh-agent"
 stdout_logfile=/var/log/remove_X_win_start_lock.log
 autostart=false
 autorestart=false
@@ -230,8 +224,8 @@ numprocs=1
 redirect_stderr=true
 END
 
-tee rserver.conf << END
-[program:3_rserver]
+tee RStudio.conf << END
+[program:3_RStudio]
 command=/usr/lib/rstudio-server/bin/rserver --server-daemonize 0
 stdout_logfile=/var/log/rserver.log
 autostart=$startr
@@ -311,4 +305,7 @@ docker restart $nuser
 popd
 echo "Docker ready. User: $nuser Password: $pass Address: $URLs" > docker.txt
 exit # exit from su
+# if [ "$email" -ne "" ] ; then
+# 	mutt  -s "Docker ready" -a /opt/backup.sql $email < docker.txt
+# fi
 cd ~

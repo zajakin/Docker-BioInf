@@ -3,7 +3,7 @@ sudo apt update
 sudo apt upgrade
 sudo apt dist-upgrade
 if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
-	sudo apt install docker-compose quota -y
+	sudo apt install docker-compose quota mutt -y
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
 	cat /etc/fstab | grep quota  # should be usrquota,grpquota   sudo mcedit /etc/fstab
@@ -34,6 +34,10 @@ if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
 # Or generate automatically
 # rm users.tsv
+
+#smtp_url="smtp[s]://[user[:pass]@]host[:port]"
+#smtp_url="smtps://[user[:pass]@]smtp.gmail.com:587"
+smtp_url="smtp://10.1.0.4"
 base="serv1.edu.eu"
 quota="10G"
 count=20
@@ -41,7 +45,7 @@ for i in {300..650}
 	do
 	if [ `grep -c "^$i$" usedports` != 0 ]; then continue; fi
 	if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
-	echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\tuser$i@gmail.com" >> users.tsv
+	echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t" >> users.tsv
 	count=$[count-1]
 	if [ $count == 0 ]; then break; fi
 done
