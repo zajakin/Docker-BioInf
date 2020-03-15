@@ -137,13 +137,10 @@ http {
     error_log /var/log/nginx-error.log error;
   server {
     listen 443 ssl;
-    server_name $base;
     rewrite ^/\$ $URLs/ permanent;
     rewrite ^/s\$ $URLs/ permanent; 
     location /s/ {
       rewrite ^/s/(.*)\$ /\$1 break;
-      proxy_set_header Host \$host;
-    	proxy_set_header X-Real-IP \$remote_addr;
       proxy_pass http://localhost:9001;
       proxy_redirect http://localhost:9001/ $URLs/;
       proxy_http_version 1.1;
