@@ -1,11 +1,18 @@
 #!/usr/bin/bash
 
-#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
-smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
-admin="admin@edu.eu"
-base="serv1.edu.eu" # Required
-alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
-quota="10G"  # "200M" or "10G" or "1T"
+# Settings can be edited in "Settings.ini"
+if [ -e "Settings.ini" ]; then source Settings.ini
+else
+tee Settings.ini << END
+	#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
+	smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
+	admin="admin@edu.eu"
+	base="serv1.edu.eu" # Required
+	alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
+	quota="10G"  # "200M" or "10G" or "1T"
+END
+source Settings.ini
+fi
 
 sudo apt update
 sudo apt upgrade -y --no-install-recommends

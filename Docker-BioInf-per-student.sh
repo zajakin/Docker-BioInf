@@ -20,8 +20,7 @@ while getopts ":u:b:o:q:p:s:m:" opt; do
   esac
 done
 
-# nuser="user300";  base="serv1.edu.eu";  portD="300";	quota=="10G";	pass="pass1200"; email="user00@gmail.com"
-echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass email=$email"
+echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email"
 if [ "$nuser" == "" ] ; then
 	read -p "Error! No user name
 	Press enter to continue"
@@ -43,6 +42,7 @@ sudo useradd -g docker -N -s /bin/bash --create-home $nuser
 sudo quota -vs $nuser
 sudo setquota -u $nuser $quota $quota 0 0 /
 cd /home/$nuser
+echo $admin | sudo tee admin
 echo $nuser | sudo tee nuser
 echo $base | sudo tee base
 echo $portD | sudo tee portD
@@ -51,6 +51,7 @@ echo $pass | sudo tee pass
 echo $start | sudo tee start
 
 sudo su $nuser
+admin=`cat admin`
 nuser=`cat nuser`
 uid=$(id -u $nuser)
 gid=$(id -g $nuser)
