@@ -105,51 +105,67 @@ cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dis
 sed -i 's@  <div class="push">@<table><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLs}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLs}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLs}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
-echo 'http {
-  map \\\$http_upgrade \\\$connection_upgrade {
+mkdir /var/log/nginx
+echo 'daemon off;
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+events {
+        worker_connections 768;
+        # multi_accept on;
+}
+http {
+  map \$http_upgrade \$connection_upgrade {
       default upgrade;
       ''      close;
     }
-  server {
-    listen 443;
-    server_name $base;
-    ssl    on;
+		sendfile on;
+		tcp_nopush on;
+		tcp_nodelay on;
+		keepalive_timeout 65;
+		types_hash_max_size 2048;
+		include /etc/nginx/mime.types;
+		default_type application/octet-stream;
     ssl_session_timeout  5m;
-    ssl_protocols  SSLv2 SSLv3 TLSv1;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv2 SSLv3, ref: POODLE
+    ssl_prefer_server_ciphers on;
     ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
-    ssl_prefer_server_ciphers   on;
     ssl_certificate        $cert;
     ssl_certificate_key    $key;
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log error;
+    access_log /var/log/nginx-access.log;
+    error_log /var/log/nginx-error.log error;
+  server {
+    listen 443 ssl;
+    server_name $base;
     location / {
       proxy_pass http://localhost:80;
       proxy_redirect http://localhost:80/ $URLs/;
       proxy_http_version 1.1;
-      proxy_set_header Upgrade \\\$http_upgrade;
-      proxy_set_header Connection \\\$connection_upgrade;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/r\\\$ $URLs/r/ permanent; 
+    rewrite ^/r\$ $URLs/r/ permanent; 
     location /r/ {
-      rewrite ^/r/(.*)\\\$ /\\\$1 break;
+      rewrite ^/r/(.*)\$ /\$1 break;
       proxy_pass http://localhost:8787;
       proxy_redirect http://localhost:8787/ $URLs/r/;
       proxy_http_version 1.1;
-      proxy_set_header Upgrade \\\$http_upgrade;
-      proxy_set_header Connection \\\$connection_upgrade;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/b\\\$ $URLs/b/ permanent; 
+    rewrite ^/b\$ $URLs/b/ permanent; 
     location /b/ {
-      rewrite ^/b/(.*)\\\$ /\\\$1 break;
+      rewrite ^/b/(.*)\$ /\$1 break;
       proxy_pass http://localhost:4200;
       proxy_redirect http://localhost:4200/ $URLs/b/;
       proxy_http_version 1.1;
-      proxy_set_header Upgrade \\\$http_upgrade;
-      proxy_set_header Connection \\\$connection_upgrade;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
@@ -317,7 +333,7 @@ END
 
 tee nginx.conf << END
 [program:6_nginx]
-command=/usr/bin/nginx -g daemon off;
+command=/usr/sbin/nginx -g
 stdout_logfile=/var/log/nginx.log
 autostart=true
 autorestart=true
