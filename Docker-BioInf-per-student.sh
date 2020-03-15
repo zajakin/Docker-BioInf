@@ -60,10 +60,10 @@ quota=`cat quota`
 pass=`cat pass`
 start=`cat start`
 IP="${base}:${portD}"
-URLs="https://${IP}0/s/"
+URLs="https://${IP}0/s"
 URLn="https://${IP}1"
-URLb="https://${IP}0/b/"
-URLr="https://${IP}0/r/"
+URLb="https://${IP}0/b"
+URLr="https://${IP}0/r"
 URLj="https://${IP}3"
 for st in r j n b h
 do
@@ -108,11 +108,11 @@ if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/n
 mkdir /var/log/nginx
 echo 'daemon off;
 user www-data;
-worker_processes 1;
+worker_processes 2;
 pid /run/nginx.pid;
 include /etc/nginx/modules-enabled/*.conf;
 events {
-        worker_connections 2;
+        worker_connections 2000;
         # multi_accept on;
 }
 http {
@@ -139,7 +139,8 @@ http {
     listen 443 ssl;
     server_name $base;
     rewrite ^/\$ $URLs/ permanent; 
-    location / {
+    rewrite ^/s\$ $URLs/ permanent; 
+    location /s/ {
       proxy_pass http://localhost:80;
       proxy_redirect http://localhost:80/ $URLs/;
       proxy_http_version 1.1;
