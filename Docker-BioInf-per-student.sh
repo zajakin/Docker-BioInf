@@ -118,7 +118,7 @@ events {
 http {
   map \$http_upgrade \$connection_upgrade {
       default upgrade;
-      \'\'      close;
+      ""      close;
     }
 	sendfile on;
 	tcp_nopush on;
@@ -357,7 +357,7 @@ END
 
 tee nginx.conf << END
 [program:6_nginx]
-command=/usr/sbin/nginx -g
+command=/usr/sbin/nginx
 stdout_logfile=/var/log/nginx.log
 autostart=true
 autorestart=true
