@@ -445,6 +445,7 @@ If you can not access to Docker container from home:
 END
 exit # exit from su
 if [ "$email" -ne "" ] ; then
-	curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
+	echo "/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt"
+	/usr/bin/curl -v $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 cd ~
