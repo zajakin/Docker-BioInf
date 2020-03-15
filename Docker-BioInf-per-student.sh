@@ -60,7 +60,7 @@ quota=`cat quota`
 pass=`cat pass`
 start=`cat start`
 IP="${base}:${portD}"
-URLs="https://${IP}0"
+URLs="https://${IP}0/s/"
 URLn="https://${IP}1"
 URLb="https://${IP}0/b/"
 URLr="https://${IP}0/r/"
@@ -108,11 +108,11 @@ if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/n
 mkdir /var/log/nginx
 echo 'daemon off;
 user www-data;
-worker_processes auto;
+worker_processes 1;
 pid /run/nginx.pid;
 include /etc/nginx/modules-enabled/*.conf;
 events {
-        worker_connections 768;
+        worker_connections 2;
         # multi_accept on;
 }
 http {
@@ -148,44 +148,45 @@ http {
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/r\$ $URLs/r/ permanent; 
+    rewrite ^/r\$ $URLr/ permanent; 
     location /r/ {
       rewrite ^/r/(.*)\$ /\$1 break;
       proxy_pass http://localhost:8787;
-      proxy_redirect http://localhost:8787/ $URLs/r/;
+      proxy_redirect http://localhost:8787/ $URLr/;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/j\$ $URLs/j/ permanent; 
+    rewrite ^/j\$ $URLj/ permanent; 
     location /j/ {
       rewrite ^/j/(.*)\$ /\$1 break;
       proxy_pass https://localhost:8888;
-      proxy_redirect https://localhost:8888/ $URLs/j/;
+      proxy_redirect https://localhost:8888/ $URLj/;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/n\$ $URLs/n/ permanent; 
+    rewrite ^/n\$ $URLn/ permanent; 
+    rewrite ^/websockify\$ $URLn/websockify permanent; 
     location /n/ {
       rewrite ^/n/(.*)\$ /\$1 break;
       proxy_pass https://localhost:5900;
-      proxy_redirect https://localhost:5900/ $URLs/j/;
+      proxy_redirect https://localhost:5900/ $URLn/;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \$connection_upgrade;
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
-    rewrite ^/b\$ $URLs/b/ permanent; 
+    rewrite ^/b\$ $URLb/ permanent; 
     location /b/ {
       rewrite ^/b/(.*)\$ /\$1 break;
       proxy_pass http://localhost:4200;
-      proxy_redirect http://localhost:4200/ $URLs/b/;
+      proxy_redirect http://localhost:4200/ $URLb/;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \$connection_upgrade;
