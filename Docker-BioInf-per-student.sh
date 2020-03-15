@@ -81,7 +81,7 @@ docker volume inspect $nuser
 pushd /home/$nuser/setup
 key=/etc/supervisor/conf.d/self.key
 cert=/etc/supervisor/conf.d/self.pem
-# openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
+openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
 # cat self.key self.pem > certificate.pem
 
 tee update.sh << END
@@ -118,15 +118,15 @@ events {
 http {
   map \$http_upgrade \$connection_upgrade {
       default upgrade;
-      ''      close;
+      \'\'      close;
     }
-		sendfile on;
-		tcp_nopush on;
-		tcp_nodelay on;
-		keepalive_timeout 65;
-		types_hash_max_size 2048;
-		include /etc/nginx/mime.types;
-		default_type application/octet-stream;
+	sendfile on;
+	tcp_nopush on;
+	tcp_nodelay on;
+	keepalive_timeout 65;
+	types_hash_max_size 2048;
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
     ssl_session_timeout  5m;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv2 SSLv3, ref: POODLE
     ssl_prefer_server_ciphers on;
@@ -138,6 +138,7 @@ http {
   server {
     listen 443 ssl;
     server_name $base;
+    rewrite ^/\$ $URLs/ permanent; 
     location / {
       proxy_pass http://localhost:80;
       proxy_redirect http://localhost:80/ $URLs/;
@@ -158,6 +159,28 @@ http {
       proxy_read_timeout 20d;
       proxy_buffering off;
     }
+    rewrite ^/j\$ $URLs/j/ permanent; 
+    location /j/ {
+      rewrite ^/j/(.*)\$ /\$1 break;
+      proxy_pass https://localhost:8888;
+      proxy_redirect https://localhost:8888/ $URLs/j/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection \$connection_upgrade;
+      proxy_read_timeout 20d;
+      proxy_buffering off;
+    }
+    rewrite ^/n\$ $URLs/n/ permanent; 
+    location /n/ {
+      rewrite ^/n/(.*)\$ /\$1 break;
+      proxy_pass https://localhost:5900;
+      proxy_redirect https://localhost:5900/ $URLs/j/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection \$connection_upgrade;
+      proxy_read_timeout 20d;
+      proxy_buffering off;
+    }
     rewrite ^/b\$ $URLs/b/ permanent; 
     location /b/ {
       rewrite ^/b/(.*)\$ /\$1 break;
@@ -171,7 +194,7 @@ http {
     }
   }
 }' > /etc/nginx/nginx.conf
-ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
+# ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
