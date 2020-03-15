@@ -60,11 +60,11 @@ quota=`cat quota`
 pass=`cat pass`
 start=`cat start`
 IP="${base}:${portD}"
-URLs="http://${IP}0"
+URLs="https://${IP}0"
 URLn="https://${IP}1"
-URLb="http://${IP}4"
-URLr="http://${IP}7"
-URLj="https://${IP}8"
+URLb="https://${IP}0/b/"
+URLr="https://${IP}0/r/"
+URLj="https://${IP}3"
 for st in r j n b h
 do
 	stv=start${st}
@@ -79,8 +79,8 @@ mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser
 docker volume inspect $nuser
 pushd /home/$nuser/setup
-openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
-cat self.key self.pem > certificate.pem
+# openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
+# cat self.key self.pem > certificate.pem
 
 tee update.sh << END
 #!/bin/bash
@@ -98,10 +98,27 @@ echo '<html><body><center>
 <td><a href="${URLn}/vnc.html"><img src="${URLn}/noVNC.png" /><br /><h1>noVNC</h1></a></td>
 <td><a href="${URLb}"><img src="${URLn}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td>
 </tr></table></center></body></html>' > /usr/share/novnc/index.html
-sed -i 's@^<table>.*@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
 sed -i 's@  <div class="push">@<table><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLs}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLs}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLs}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+if [ ! -e "/etc/tinyproxy/tinyproxy.dist" ] ; then mv /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy/tinyproxy.dist ; fi
+echo 'User tinyproxy
+Group tinyproxy
+Port 443
+Timeout 600
+MaxClients 100
+MinSpareServers 1
+MaxSpareServers 20
+StartServers 1
+MaxRequestsPerChild 0
+ConnectPort 443
+ReversePath "/" "http://127.0.0.1/"
+ReversePath "/b/"       "http://127.0.0.1:4200/"
+ReversePath "/r/"       "http://127.0.0.1:8787/"
+ReverseOnly Yes
+ReverseMagic Yes
+ReverseBaseURL "$URLs"' > /etc/tinyproxy/tinyproxy.conf
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
@@ -170,14 +187,14 @@ numprocs=1
 redirect_stderr=true
 END
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock  --net dockers-net --ip=$base
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}4:4200 -p ${portD}7:8787
 docker run -d --name=$nuser -v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d \
-		-p ${portD}0:80 -p ${portD}1:443 -p ${portD}2:22 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}8:8888 \
+		-p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 -p ${portD}3:8888 \
 		--workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always docker-bioinf
 
 tee novnc.conf << END
 [program:1_novnc_1_novnc]
-command=websockify --web=/usr/share/novnc/ --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 443 localhost:5901
+command=websockify --web=/usr/share/novnc/ --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 5900 localhost:5901
 stdout_logfile=/var/log/novnc.log
 autostart=$startn
 autorestart=true
@@ -186,7 +203,7 @@ stopsignal=KILL
 numprocs=1
 redirect_stderr=true
 END
-# LD_PRELOAD=/usr/lib/websockify/rebind.so exec python -m websockify --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 443  localhost:5901 --wrap-mode=ignore -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/user300/.vnc/passwd -xstartup /usr/bin/startlxde
+# LD_PRELOAD=/usr/lib/websockify/rebind.so exec python -m websockify --key=/etc/supervisor/conf.d/self.key --cert=/etc/supervisor/conf.d/self.pem 443 --  /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 tee vnc.conf << END
 [program:1_novnc_2_vnc]
 command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
@@ -261,8 +278,20 @@ numprocs=1
 redirect_stderr=true
 END
 
+tee tinyproxy.conf << END
+[program:6_tinyproxy]
+command=/usr/bin/tinyproxy -d
+stdout_logfile=/var/log/tinyproxy.log
+autostart=true
+autorestart=true
+user=root
+stopsignal=TERM
+numprocs=1
+redirect_stderr=true
+END
+
 tee update.conf << END
-[program:6_update]
+[program:7_update]
 command=/etc/supervisor/conf.d/update.sh
 stdout_logfile=/var/log/update.log
 autostart=false
@@ -275,7 +304,7 @@ redirect_stderr=true
 END
 
 tee restart_server.conf << END
-[program:7_restart_server]
+[program:8_restart_server]
 command=/usr/bin/pkill supervisord
 stdout_logfile=/var/log/restart_server.log
 autostart=false
