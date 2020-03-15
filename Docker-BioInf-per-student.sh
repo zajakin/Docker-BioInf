@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+source Settings.ini
 while getopts ":u:b:o:q:p:s:m:" opt; do
   case $opt in
     u) nuser="$OPTARG"
@@ -22,19 +23,18 @@ done
 
 echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email"
 if [ "$nuser" == "" ] ; then
-	read -p "Error! No user name
-	Press enter to continue"
+	echo "Error! No user name"
+	read -p "Press enter to continue"
 	exit
 fi
-if [ `cat /etc/passwd | grep -c "^${nuser}:"` -ne 0 ] ; then 
-	read -p "Error! User '$nuser' already exist
-	Press enter to continue"
+if [ `docker ps -a | grep -c ${nuser}$` -ne 0 ] ; then 
+	echo "Error! User '$nuser' already have Docker container"
 	exit
 fi
 if [ "$base" == "" ] ; then exit; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
-if [ "$quota" == "" ] ; then quota="2T" ; fi
+if [ "$quota" == "" ] ; then quota="10G" ; fi
 if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
 if [ "$start" == "" ] ; then start="h" ; fi
 

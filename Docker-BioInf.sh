@@ -77,6 +77,7 @@ for i in {300..650}
 done
 cat  users.tsv
 # Add users and create Dockers    staff.tsv contains permament users
+cat staff.tsv
 grep -v "^#" staff.tsv users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 cat ../user*/docker.txt > docker.txt
 
