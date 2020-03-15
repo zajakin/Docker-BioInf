@@ -138,15 +138,15 @@ http {
   server {
     listen 443 ssl;
     server_name $base;
-    rewrite ^/\$ $URLs/ permanent; 
+    rewrite ^/\$ $URLs/ permanent;
     rewrite ^/s\$ $URLs/ permanent; 
     location /s/ {
-      proxy_pass http://localhost:80;
-      proxy_redirect http://localhost:80/ $URLs/;
+      rewrite ^/s/(.*)\$ /\$1 break;
+      proxy_set_header Host \$host;
+    	proxy_set_header X-Real-IP \$remote_addr;
+      proxy_pass http://localhost:9001;
+      proxy_redirect http://localhost:9001/ $URLs/;
       proxy_http_version 1.1;
-      proxy_set_header Upgrade \$http_upgrade;
-      proxy_set_header Connection \$connection_upgrade;
-      proxy_read_timeout 20d;
       proxy_buffering off;
     }
     rewrite ^/r\$ $URLr/ permanent; 
@@ -247,7 +247,7 @@ username=$nuser
 password=$pass
 
 [inet_http_server]
-port=0.0.0.0:80
+port=0.0.0.0:9001
 username=$nuser
 password=$pass
 END
