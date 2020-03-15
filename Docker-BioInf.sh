@@ -1,9 +1,20 @@
 #!/usr/bin/bash
+
+#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
+smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
+admin="admin@edu.eu"
+base="serv1.edu.eu" # Required
+alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
+quota="10G"  # "200M" or "10G" or "1T"
+
 sudo apt update
-sudo apt upgrade
-sudo apt dist-upgrade
+sudo apt upgrade -y --no-install-recommends
+sudo apt dist-upgrade -y --no-install-recommends
+sudo apt autoremove -y
+sudo apt autoclean -y
+sudo certbot renew
 if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
-	sudo apt install docker-compose quota mutt -y
+	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
 	cat /etc/fstab | grep quota  # should be usrquota,grpquota   sudo mcedit /etc/fstab
@@ -14,6 +25,19 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	sudo quota -vs $USER
 	# docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
 	
+	sudo certbot certonly --standalone --preferred-challenges http --allow-subset-of-names --expand -d $base $alias4SSL
+	sudo ls -l /etc/letsencrypt/live/$base
+	( sudo crontab -l | grep -v -F "certbot renew" ; echo "42 2 * * 7 certbot renew --quiet" ) | sudo crontab -
+	docker volume create --opt type=volume --opt device=/etc/letsencrypt --name cert # -v cert:/cert:ro
+	if [ `docker volume ls | grep -c " cert\$"` -ne 1 ] ; then
+		mkdir -p cert/live/$base/
+		key=cert/live/$base/privkey.pem
+		cert=cert/live/$base/fullchain.pem
+		openssl req -x509 -nodes -newkey rsa:2048 -keyout $key -out $cert -batch -days 3650
+		# cat self.key self.pem > certificate.pem
+		docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
+	fi
+
 	sudo mkdir -p /data
 	sudo chmod +rx /data
 	sudo chown $USER /data
@@ -35,11 +59,6 @@ if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/
 # Or generate automatically
 # rm users.tsv
 
-#smtp_url="smtp[s]://[user[:pass]@]host[:port]"
-#smtp_url="smtps://[user[:pass]@]smtp.gmail.com:587"
-smtp_url="smtp://10.1.0.4"
-base="serv1.edu.eu"
-quota="10G"
 count=20
 for i in {300..650}
 	do
@@ -73,7 +92,7 @@ ls .. | grep user | xargs -l sudo userdel --remove
 ls .. | grep user | wc -l
 
 # Delete specific user
-nuser="user00"
+nuser="user300"
 echo $nuser
 docker top $nuser 
 docker restart $nuser 

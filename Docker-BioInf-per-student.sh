@@ -20,7 +20,7 @@ while getopts ":u:b:o:q:p:s:m:" opt; do
   esac
 done
 
-# nuser="user00";  base="serv1.edu.eu";  portD="2020";	quota=="2T";	pass="pass1200"; email="user00@gmail.com"
+# nuser="user300";  base="serv1.edu.eu";  portD="300";	quota=="10G";	pass="pass1200"; email="user00@gmail.com"
 echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass email=$email"
 if [ "$nuser" == "" ] ; then
 	read -p "Error! No user name
@@ -79,10 +79,9 @@ mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser
 docker volume inspect $nuser
 pushd /home/$nuser/setup
-key=/etc/supervisor/conf.d/self.key
-cert=/etc/supervisor/conf.d/self.pem
-openssl req -x509 -nodes -newkey rsa:2048 -keyout self.key -out self.pem -batch -days 3650
-# cat self.key self.pem > certificate.pem
+
+key=/cert/live/$base/privkey.pem
+cert=/cert/live/$base/fullchain.pem
 
 tee update.sh << END
 #!/bin/bash
@@ -263,9 +262,9 @@ redirect_stderr=true
 END
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}4:4200 -p ${portD}7:8787
-docker run -d --name=$nuser -v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d \
-		-p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 -p ${portD}3:8888 \
-		--workdir /home/$nuser -v /home/$nuser/log:/var/log --restart always docker-bioinf
+docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 -p ${portD}3:8888 \
+		-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
+		-v /home/$nuser/log:/var/log --workdir /home/$nuser --restart always docker-bioinf
 
 tee novnc.conf << END
 [program:1_novnc_1_novnc]
@@ -407,9 +406,35 @@ docker restart $nuser
 # docker exec -it $nuser pkill supervisord
 # docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
 popd
-echo "Docker ready. User: $nuser Password: $pass Address: $URLs" > docker.txt
+echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLs" > docker.txt
+tee mail.txt << END
+From: <$admin>
+CC: <$admin>
+To: <$email>
+Subject: Access to Docker container
+ 
+Hi!
+ 
+Your Docker container is ready.
+User: $nuser
+Password: $pass
+ 
+Addresses:
+1) Dashboard - https://${base}:${portD}0
+2) ssh -X ${nuser}@${base} -p ${portD}2
+3) RStudio (should be started in Dashboard) - $URLr
+4) Jupier notebook (should be started in Dashboard) - $URLj 
+5) ShellInABox (should be started in Dashboard) - $URLb 
+6) VNC (should be started in Dashboard) - $URLn/vnc.html
+ 
+If you can not access to Docker container from home:
+1) Check your external IP ( for example on https://www.whatsmyip.org )
+2) Send this IP to $admin to adjust firewall.
+ 
+ 
+END
 exit # exit from su
-# if [ "$email" -ne "" ] ; then
-# 	mutt  -s "Docker ready" -a /opt/backup.sql $email < docker.txt
-# fi
+if [ "$email" -ne "" ] ; then
+	curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
+fi
 cd ~
