@@ -85,7 +85,7 @@ key=/cert/live/$base/privkey.pem
 cert=/cert/live/$base/fullchain.pem
 dhparam=/cert/dhparam.pem
 
-tee update.sh << END
+tee update.sh << END > /dev/null
 #!/bin/bash
 for pic in supervisor rstudio jupyter noVNC shellinabox
 do
@@ -218,8 +218,7 @@ PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
 echo -e "c.NotebookApp.password = u'\$PASS'\nc.JupyterHub.bind_url = 'http://127.0.0.1:8000'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 
-tee setup.sh << END
-#!/bin/bash
+echo -e "#!/bin/bash
 if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	groupadd -g $gid $nuser
 	useradd -u $uid -g $gid -G sudo -d /home/$nuser -s /bin/bash -m $nuser
@@ -231,11 +230,10 @@ if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	/etc/supervisor/conf.d/update.sh
 	mv /etc/supervisor/conf.d/setup.conf /etc/supervisor/conf.d/setup.done
 fi
-END
+" > setup.sh
 chmod +rx *.sh
 
-tee supervisord.conf << END
-[supervisord]
+echo -e "[supervisord]
 user=root
 nodaemon=true
 redirect_stderr=true
@@ -256,10 +254,9 @@ password=$pass
 port=0.0.0.0:9001
 username=$nuser
 password=$pass
-END
+" > supervisord.conf
 
-tee setup.conf << END
-[program:setup]
+echo -e '[program:setup]
 command=/bin/bash -c /etc/supervisor/conf.d/setup.sh
 stdout_logfile=/var/log/setup.log
 autostart=true
@@ -269,15 +266,14 @@ startsecs=0
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
+' > setup.conf
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}4:4200 -p ${portD}7:8787
-docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 -p ${portD}3:8888 \
-		-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
-		-v /home/$nuser/log:/var/log --workdir /home/$nuser --restart always docker-bioinf
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
+docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 --workdir /home/$nuser \
+	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
+	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
-tee novnc.conf << END
-[program:1_novnc_1_novnc]
+echo -e "[program:1_novnc_1_novnc]
 command=websockify --web=/usr/share/novnc/ --key=$key --cert=$cert 5900 localhost:5901
 stdout_logfile=/var/log/novnc.log
 autostart=$startn
@@ -286,10 +282,9 @@ user=root
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
-# LD_PRELOAD=/usr/lib/websockify/rebind.so exec python -m websockify --key=$key --cert=$cert 443 --  /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
-tee vnc.conf << END
-[program:1_novnc_2_vnc]
+" > novnc.conf
+
+echo -e "[program:1_novnc_2_vnc]
 command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 stdout_logfile=/var/log/vnc.log
 autostart=$startn
@@ -298,10 +293,9 @@ user=root
 stopsignal=QUIT
 numprocs=1
 redirect_stderr=true
-END
+" > vnc.conf
  
-tee remove_X_win_start_lock.conf << END
-[program:1_novnc_3_remove_X_win_start_lock]
+echo -e '[program:1_novnc_3_remove_X_win_start_lock]
 command=/bin/bash -c "rm -f /tmp/.X1-lock; rm -fr /tmp/.X11-unix; pkill Xtigervnc; pkill mem-cached; pkill websockify; pkill ssh-agent"
 stdout_logfile=/var/log/remove_X_win_start_lock.log
 autostart=false
@@ -311,10 +305,9 @@ startsecs=0
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
-#  --cert=/etc/supervisor/conf.d
-tee shellinaboxd.conf << END
-[program:2_shellinaboxd]
+' > remove_X_win_start_lock.conf
+
+echo -e "[program:2_shellinaboxd]
 command=/usr/bin/shellinaboxd -t --css /etc/shellinabox/options-available/00_White\ On\ Black.css
 stdout_logfile=/var/log/shellinaboxd.log
 autostart=$startb
@@ -323,10 +316,9 @@ user=root
 stopsignal=TERM
 numprocs=1
 redirect_stderr=true
-END
+" > shellinaboxd.conf
 
-tee RStudio.conf << END
-[program:3_RStudio]
+echo -e "[program:3_RStudio]
 command=/usr/lib/rstudio-server/bin/rserver --server-daemonize 0
 stdout_logfile=/var/log/rserver.log
 autostart=$startr
@@ -335,10 +327,9 @@ user=root
 stopsignal=TERM
 numprocs=1
 redirect_stderr=true
-END
+" > RStudio.conf
 
-tee jupyter_notebook.conf << END
-[program:4_jupyter_notebook]
+echo -e "[program:4_jupyter_notebook]
 command=/sbin/runuser -u $nuser -- jupyter notebook -y --no-browser --certfile=$cert --keyfile=$key --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
 stdout_logfile=/var/log/jupyter_notebook.log
 directory=/home/$nuser
@@ -348,10 +339,9 @@ user=root
 stopsignal=TERM
 numprocs=1
 redirect_stderr=true
-END
+" > jupyter_notebook.conf
 
-tee sshd.conf << END
-[program:5_sshd]
+echo -e "[program:5_sshd]
 command=/usr/sbin/sshd -D
 stdout_logfile=/var/log/sshd.log
 autostart=$starth
@@ -360,10 +350,9 @@ user=root
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
+" > sshd.conf
 
-tee nginx.conf << END
-[program:6_nginx]
+echo -e '[program:6_nginx]
 command=/usr/sbin/nginx
 stdout_logfile=/var/log/nginx.log
 autostart=true
@@ -372,10 +361,9 @@ user=root
 stopsignal=TERM
 numprocs=1
 redirect_stderr=true
-END
+' > nginx.conf
 
-tee update.conf << END
-[program:7_update]
+echo -e '[program:7_update]
 command=/etc/supervisor/conf.d/update.sh
 stdout_logfile=/var/log/update.log
 autostart=false
@@ -385,10 +373,9 @@ startsecs=0
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
+' > update.conf
 
-tee restart_server.conf << END
-[program:8_restart_server]
+echo -e '[program:8_restart_server]
 command=/usr/bin/pkill supervisord
 stdout_logfile=/var/log/restart_server.log
 autostart=false
@@ -398,7 +385,7 @@ startsecs=0
 stopsignal=KILL
 numprocs=1
 redirect_stderr=true
-END
+' > restart_server.conf
 
 # [rpcinterface:supervisor]
 # supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
