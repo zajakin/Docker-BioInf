@@ -65,7 +65,7 @@ URLs="https://${IP}0/s"
 URLn="https://${IP}1"
 URLb="https://${IP}0/b"
 URLr="https://${IP}0/r"
-URLj="https://${IP}3"
+URLj="https://${IP}0/j"
 for st in r j n b h
 do
 	stv=start${st}
@@ -83,6 +83,7 @@ pushd /home/$nuser/setup
 
 key=/cert/live/$base/privkey.pem
 cert=/cert/live/$base/fullchain.pem
+dhparam=/cert/dhparam.pem
 
 tee update.sh << END
 #!/bin/bash
@@ -127,12 +128,17 @@ http {
 	types_hash_max_size 2048;
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
-    ssl_session_timeout  5m;
+    ssl_session_timeout  1d;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv2 SSLv3, ref: POODLE
     ssl_prefer_server_ciphers on;
     ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
     ssl_certificate        $cert;
     ssl_certificate_key    $key;
+    ssl_dhparam            $dhparam;
+    ssl_session_cache shared:SSL:50m;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    add_header Strict-Transport-Security max-age=15768000;
     access_log /var/log/nginx-access.log;
     error_log /var/log/nginx-error.log error;
   server {
@@ -160,8 +166,11 @@ http {
     rewrite ^/j\$ $URLj/ permanent; 
     location /j/ {
       rewrite ^/j/(.*)\$ /\$1 break;
-      proxy_pass https://localhost:8888;
-      proxy_redirect https://localhost:8888/ $URLj/;
+      proxy_pass http://localhost:8000;
+      proxy_redirect http://localhost:8000/ $URLj/;
+		proxy_set_header X-Real-IP \$remote_addr;
+		proxy_set_header Host \$host;
+		proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \$connection_upgrade;
@@ -206,7 +215,7 @@ rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
-echo "c.NotebookApp.password = u'\$PASS'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
+echo -e "c.NotebookApp.password = u'\$PASS'\nc.JupyterHub.bind_url = 'http://127.0.0.1:8000'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 
 tee setup.sh << END
@@ -330,7 +339,7 @@ END
 
 tee jupyter_notebook.conf << END
 [program:4_jupyter_notebook]
-command=/sbin/runuser -u $nuser -- jupyter notebook -y --no-browser --ip=0.0.0.0 --certfile=$cert --keyfile=$key --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
+command=/sbin/runuser -u $nuser -- jupyter notebook -y --no-browser --certfile=$cert --keyfile=$key --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
 stdout_logfile=/var/log/jupyter_notebook.log
 directory=/home/$nuser
 autostart=$startj

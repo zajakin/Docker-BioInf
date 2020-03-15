@@ -33,9 +33,11 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	# docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
 	
 	sudo certbot certonly --standalone --preferred-challenges http --allow-subset-of-names --expand -d $base $alias4SSL
+	sudo openssl dhparam -out /etc/letsencrypt/dhparam.pem 2048
+	sudo chmod 755 /etc/letsencrypt/{archive,live}
 	sudo ls -l /etc/letsencrypt/live/$base
 	( sudo crontab -l | grep -v -F "certbot renew" ; echo "42 2 * * 7 certbot renew --quiet" ) | sudo crontab -
-	docker volume create --opt type=volume --opt device=/etc/letsencrypt --name cert # -v cert:/cert:ro
+	docker volume create --opt type=volume --opt device=/etc/letsencrypt --opt o=bind --name cert # -v cert:/cert:ro
 	if [ `docker volume ls | grep -c " cert\$"` -ne 1 ] ; then
 		mkdir -p cert/live/$base/
 		key=cert/live/$base/privkey.pem
