@@ -4,7 +4,7 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		locales sudo mc wget procps psmisc htop tinyproxy \
+		locales sudo mc wget procps psmisc htop nginx-light \
 		shellinabox ssh tmux supervisor bash-completion \
 		policykit-1-gnome dbus-x11 firefox-esr geany \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask \
