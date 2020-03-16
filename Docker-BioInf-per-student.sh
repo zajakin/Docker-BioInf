@@ -173,7 +173,7 @@ http {
 		rewrite ^/j\$ $URLj/ permanent; 
 		location /j/ {
 			# rewrite ^/j/(.*)\$ /\$1 break;
-			proxy_pass http://localhost:8888/j ;
+			proxy_pass http://localhost:8888 ;
 			proxy_redirect http://localhost:8888/j ${URLj} ;
 			proxy_set_header X-Real-IP \$remote_addr;
 			proxy_set_header Host \$host;
@@ -185,7 +185,7 @@ http {
 			proxy_buffering off;
 		}
 		location ~* /j/(api/kernels/[^/]+/(channels|iopub|shell|stdin)|terminals/websocket)/? {
-			proxy_pass http://localhost:8888/j;
+			proxy_pass http://localhost:8888;
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header Host $host;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -209,7 +209,7 @@ http {
 		}
 		location /websockify {
 			proxy_http_version 1.1;
-			proxy_pass https://vnc_proxy/;
+			proxy_pass https://vnc_proxy;
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection "upgrade";
 			proxy_read_timeout 300s;
