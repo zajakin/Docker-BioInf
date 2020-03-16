@@ -63,12 +63,12 @@ quota=`cat quota`
 pass=`cat pass`
 start=`cat start`
 email=`cat email`
-IP="${base}:${portD}"
-URLs="https://${IP}0/s"
-URLn="https://${IP}1"
-URLb="https://${IP}0/b"
-URLr="https://${IP}0/r"
-URLj="https://${IP}0/j"
+URLp="https://${base}:${portD}0"
+URLs="${URLp}/s"
+URLn="https://${base}:${portD}1"
+URLb="${URLp}/b"
+URLr="${URLp}/r"
+URLj="${URLp}/j"
 for st in r j n b h
 do
 	stv=start${st}
@@ -95,20 +95,21 @@ do
 	ln -s /usr/share/novnc/\${pic}.png /usr/lib/python3/dist-packages/supervisor/ui/\${pic}.png
 done
 echo '<html><body><center>
-<a href="$URLs"><img src="${URLn}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
+<a href="$URLs"><img src="${URLp}/supervisor.png" /><br /><h1>Supervisor</h1></a><br />
 <table><tr align="center" valign="bottom">
-<td><a href="${URLr}"><img src="${URLn}/rstudio.png" /><br /><h1>R-Studio</h1></a></td>
-<td><a href="${URLj}"><img src="${URLn}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td>
+<td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td>
+<td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td>
 </tr><tr align="center" valign="bottom">
-<td><a href="${URLn}/vnc.html"><img src="${URLn}/noVNC.png" /><br /><h1>noVNC</h1></a></td>
-<td><a href="${URLb}"><img src="${URLn}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td>
+<td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td>
+<td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td>
 </tr></table></center></body></html>' > /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLs}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLs}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLs}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLs}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
+sed -i 's@  <div class="push">@<table><tr align="center"><td colspan="2"><a href="${URLp}/home"><h1>Home directory</h1></a></td><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
 mkdir /var/log/nginx
+ln -s /home/$nuser /usr/share/novnc/home
 echo 'daemon off;
 user www-data;
 worker_processes 2;
@@ -122,6 +123,9 @@ http {
 	map \$http_upgrade \$connection_upgrade {
 		default upgrade;
 		""      close;
+	}
+	upstream vnc_proxy {
+		server 127.0.0.1:5900;
 	}
 	sendfile on;
 	tcp_nopush on;
@@ -169,14 +173,25 @@ http {
 		rewrite ^/j\$ $URLj/ permanent; 
 		location /j/ {
 			# rewrite ^/j/(.*)\$ /\$1 break;
-			proxy_pass http://localhost:8888;
-			proxy_redirect http://localhost:8888 https://${IP}0 ;
+			proxy_pass http://localhost:8888/j ;
+			proxy_redirect http://localhost:8888/j ${URLj} ;
 			proxy_set_header X-Real-IP \$remote_addr;
 			proxy_set_header Host \$host;
 			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection \$connection_upgrade;
+			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+		location ~* /j/(api/kernels/[^/]+/(channels|iopub|shell|stdin)|terminals/websocket)/? {
+			proxy_pass http://localhost:8888/j;
+			proxy_set_header X-Real-IP $remote_addr;
+			proxy_set_header Host $host;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade "websocket";
+			proxy_set_header Connection "upgrade";
 			proxy_read_timeout 20d;
 			proxy_buffering off;
 		}
@@ -190,6 +205,14 @@ http {
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection \$connection_upgrade;
 			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+		location /websockify {
+			proxy_http_version 1.1;
+			proxy_pass https://vnc_proxy/;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_read_timeout 300s;
 			proxy_buffering off;
 		}
 		rewrite ^/b\$ $URLb/ permanent; 
@@ -395,7 +418,7 @@ chmod +r *
 sleep 10s
 docker exec -it $nuser pkill supervisord
 popd > /dev/null
-echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLs" > docker.txt
+echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLp" > docker.txt
 tee mail.txt << END
 From: <$admin>
 CC: <$admin>
