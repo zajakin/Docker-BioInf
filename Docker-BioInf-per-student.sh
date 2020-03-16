@@ -143,7 +143,7 @@ http {
     error_log /var/log/nginx-error.log error;
   server {
     listen 443 ssl;
-    root /usr/share/novnc
+    root /usr/share/novnc;
     rewrite ^/\$ $URLs/ permanent;
     rewrite ^/s\$ $URLs/ permanent; 
     location /s/ {
@@ -430,7 +430,7 @@ If you can not access to Docker container from home:
 2) Send this IP to $admin to adjust firewall.
  
 END
-if [ "$email" -ne "" ] ; then
+if [ ! "$email" == "" ] ; then
 	echo "/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt"
 	/usr/bin/curl -v $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
