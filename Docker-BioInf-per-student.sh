@@ -49,6 +49,7 @@ echo $portD | sudo tee portD > /dev/null
 echo $quota | sudo tee quota > /dev/null
 echo $pass | sudo tee pass > /dev/null
 echo $start | sudo tee start > /dev/null
+echo $email | sudo tee email > /dev/null
 
 sudo su $nuser
 admin=`cat admin`
@@ -61,6 +62,7 @@ portD=`cat portD`
 quota=`cat quota`
 pass=`cat pass`
 start=`cat start`
+email=`cat email`
 IP="${base}:${portD}"
 URLs="https://${IP}0/s"
 URLn="https://${IP}1"
@@ -78,8 +80,8 @@ done
 
 rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
-docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser
-pushd /home/$nuser/setup
+docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser > /dev/null
+pushd /home/$nuser/setup  > /dev/null
 
 key=/cert/live/$base/privkey.pem
 cert=/cert/live/$base/fullchain.pem
@@ -117,10 +119,10 @@ events {
         # multi_accept on;
 }
 http {
-  map \$http_upgrade \$connection_upgrade {
-      default upgrade;
-      ""      close;
-    }
+	map \$http_upgrade \$connection_upgrade {
+		default upgrade;
+		""      close;
+	}
 	sendfile on;
 	tcp_nopush on;
 	tcp_nodelay on;
@@ -128,80 +130,80 @@ http {
 	types_hash_max_size 2048;
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
-    ssl_session_timeout  1d;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv2 SSLv3, ref: POODLE
-    ssl_prefer_server_ciphers on;
-    ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
-    ssl_certificate        $cert;
-    ssl_certificate_key    $key;
-    ssl_dhparam            $dhparam;
-    ssl_session_cache shared:SSL:50m;
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    add_header Strict-Transport-Security max-age=15768000;
-    access_log /var/log/nginx-access.log;
-    error_log /var/log/nginx-error.log error;
-  server {
-    listen 443 ssl;
-    root /usr/share/novnc;
-    rewrite ^/\$ $URLs/ permanent;
-    rewrite ^/s\$ $URLs/ permanent; 
-    location /s/ {
-      rewrite ^/s/(.*)\$ /\$1 break;
-      proxy_pass http://localhost:9001;
-      proxy_redirect http://localhost:9001/ $URLs/;
-      proxy_http_version 1.1;
-      proxy_buffering off;
-    }
-    rewrite ^/r\$ $URLr/ permanent; 
-    location /r/ {
-      rewrite ^/r/(.*)\$ /\$1 break;
-      proxy_pass http://localhost:8787;
-      proxy_redirect http://localhost:8787/ $URLr/;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade \$http_upgrade;
-      proxy_set_header Connection \$connection_upgrade;
-      proxy_read_timeout 20d;
-      proxy_buffering off;
-    }
-    rewrite ^/j\$ $URLj/ permanent; 
-    location /j/ {
-#      rewrite ^/j/(.*)\$ /\$1 break;
-      proxy_pass http://localhost:8888;
-      proxy_redirect http://localhost:8888 https://${IP}0 ;
-		proxy_set_header X-Real-IP \$remote_addr;
-		proxy_set_header Host \$host;
-		proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade \$http_upgrade;
-      proxy_set_header Connection \$connection_upgrade;
-      proxy_read_timeout 20d;
-      proxy_buffering off;
-    }
-    rewrite ^/n\$ $URLn/ permanent; 
-    rewrite ^/websockify\$ $URLn/websockify permanent; 
-    location /n/ {
-      rewrite ^/n/(.*)\$ /\$1 break;
-      proxy_pass https://localhost:5900;
-      proxy_redirect https://localhost:5900/ $URLn/;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade \$http_upgrade;
-      proxy_set_header Connection \$connection_upgrade;
-      proxy_read_timeout 20d;
-      proxy_buffering off;
-    }
-    rewrite ^/b\$ $URLb/ permanent; 
-    location /b/ {
-      rewrite ^/b/(.*)\$ /\$1 break;
-      proxy_pass http://localhost:4200;
-      proxy_redirect http://localhost:4200/ $URLb/;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade \$http_upgrade;
-      proxy_set_header Connection \$connection_upgrade;
-      proxy_read_timeout 20d;
-      proxy_buffering off;
-    }
-  }
+	ssl_session_timeout  1d;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv2 SSLv3, ref: POODLE
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+	ssl_certificate        $cert;
+	ssl_certificate_key    $key;
+	ssl_dhparam            $dhparam;
+	ssl_session_cache shared:SSL:50m;
+	ssl_stapling on;
+	ssl_stapling_verify on;
+	add_header Strict-Transport-Security max-age=15768000;
+	access_log /var/log/nginx-access.log;
+	error_log /var/log/nginx-error.log error;
+	server {
+		listen 443 ssl;
+		root /usr/share/novnc;
+		rewrite ^/\$ $URLs/ permanent;
+		rewrite ^/s\$ $URLs/ permanent; 
+		location /s/ {
+			rewrite ^/s/(.*)\$ /\$1 break;
+			proxy_pass http://localhost:9001;
+			proxy_redirect http://localhost:9001/ $URLs/;
+			proxy_http_version 1.1;
+			proxy_buffering off;
+		}
+		rewrite ^/r\$ $URLr/ permanent; 
+		location /r/ {
+			rewrite ^/r/(.*)\$ /\$1 break;
+			proxy_pass http://localhost:8787;
+			proxy_redirect http://localhost:8787/ $URLr/;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \$connection_upgrade;
+			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+		rewrite ^/j\$ $URLj/ permanent; 
+		location /j/ {
+			# rewrite ^/j/(.*)\$ /\$1 break;
+			proxy_pass http://localhost:8888;
+			proxy_redirect http://localhost:8888 https://${IP}0 ;
+			proxy_set_header X-Real-IP \$remote_addr;
+			proxy_set_header Host \$host;
+			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \$connection_upgrade;
+			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+		rewrite ^/n\$ $URLn/ permanent; 
+		rewrite ^/websockify\$ $URLn/websockify permanent; 
+		location /n/ {
+			rewrite ^/n/(.*)\$ /\$1 break;
+			proxy_pass https://localhost:5900;
+			proxy_redirect https://localhost:5900/ $URLn/;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \$connection_upgrade;
+			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+		rewrite ^/b\$ $URLb/ permanent; 
+		location /b/ {
+			rewrite ^/b/(.*)\$ /\$1 break;
+			proxy_pass http://localhost:4200;
+			proxy_redirect http://localhost:4200/ $URLb/;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \$connection_upgrade;
+			proxy_read_timeout 20d;
+			proxy_buffering off;
+		}
+	}
 }' > /etc/nginx/nginx.conf
 # ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
@@ -219,7 +221,8 @@ PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
 echo -e "c.NotebookApp.password = u'\$PASS'\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 
-echo -e "#!/bin/bash
+tee setup.sh << END > /dev/null
+#!/bin/bash
 if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	groupadd -g $gid $nuser
 	useradd -u $uid -g $gid -G sudo -d /home/$nuser -s /bin/bash -m $nuser
@@ -231,7 +234,7 @@ if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	/etc/supervisor/conf.d/update.sh
 	mv /etc/supervisor/conf.d/setup.conf /etc/supervisor/conf.d/setup.done
 fi
-" > setup.sh
+END
 chmod +rx *.sh
 
 echo -e "[supervisord]
@@ -388,22 +391,10 @@ numprocs=1
 redirect_stderr=true
 ' > restart_server.conf
 
-# [rpcinterface:supervisor]
-# supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-# [program:tmux]
-# command=/sbin/runuser -u $USER --pty -- /usr/bin/tmux
-# stdout_logfile=/var/log/tmux.log
-# autostart=true
-# autorestart=true
-# stopsignal=KILL
-# numprocs=1
-
 chmod +r *
 sleep 10s
-docker restart $nuser
-# docker exec -it $nuser pkill supervisord
-# docker exec -it $nuser pkill Xtigervnc && pkill mem-cached && pkill ssh-agent
-popd
+docker exec -it $nuser pkill supervisord
+popd > /dev/null
 echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLs" > docker.txt
 tee mail.txt << END
 From: <$admin>
@@ -429,7 +420,9 @@ If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )
 2) Send this IP to $admin to adjust firewall.
  
+.
 END
+
 if [ ! "$email" == "" ] ; then
 	echo "/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt"
 	/usr/bin/curl -v $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
