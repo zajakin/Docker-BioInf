@@ -20,4 +20,8 @@ In each container opened ports/programms:
  
  Dr. Pawel Zayakin
 
+ Screenshot:
 
+ ![](https://github.com/zajakin/Docker-BioInf/raw/master/preview.png "Screenshot")
+ 
+ 
