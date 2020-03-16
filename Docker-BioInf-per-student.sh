@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-source Settings.ini
 while getopts ":u:b:o:q:p:s:m:" opt; do
   case $opt in
     u) nuser="$OPTARG"
@@ -20,7 +19,7 @@ while getopts ":u:b:o:q:p:s:m:" opt; do
     ;;
   esac
 done
-
+source Settings.ini
 echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email"
 if [ "$nuser" == "" ] ; then
 	echo "Error! No user name"

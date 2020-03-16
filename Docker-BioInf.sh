@@ -7,9 +7,9 @@ tee Settings.ini << END
 	#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
 	smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
 	admin="admin@edu.eu"
-	base="serv1.edu.eu" # Required
+	if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
 	alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
-	quota="10G"  # "200M" or "10G" or "1T"
+	if [ "$quota" == "" ] ; then quota="10G" ; fi  # "200M" or "10G" or "1T"
 END
 source Settings.ini
 fi
