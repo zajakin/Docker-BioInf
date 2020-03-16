@@ -105,7 +105,7 @@ echo '<html><body><center>
 </tr></table></center></body></html>' > /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center"><td colspan="2"><a href="${URLp}/home"><h1>Home directory</h1></a></td><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
+sed -i 's@  <div class="push">@<table><tr align="center"><td colspan="2"><a href="${URLp}/home"><h1>Home directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
 mkdir /var/log/nginx
@@ -159,6 +159,7 @@ http {
 			proxy_http_version 1.1;
 			proxy_buffering off;
 		}
+		rewrite ^/home\$ $URLp/home permanent; 
 		location /home {
 			autoindex on;
 		}
@@ -199,7 +200,6 @@ http {
 			proxy_buffering off;
 		}
 		rewrite ^/n\$ $URLn/ permanent; 
-		rewrite ^/websockify\$ $URLn/websockify permanent; 
 		location /n/ {
 			rewrite ^/n/(.*)\$ /\$1 break;
 			proxy_pass https://localhost:5900;
@@ -210,7 +210,8 @@ http {
 			proxy_read_timeout 20d;
 			proxy_buffering off;
 		}
-		location /websockify {
+		rewrite ^/websockify\$ $URLn/websockify permanent; 
+		location /n/websockify {
 			proxy_http_version 1.1;
 			proxy_pass https://vnc_proxy;
 			proxy_set_header Upgrade \$http_upgrade;
@@ -450,8 +451,7 @@ If you can not access to Docker container from home:
 END
 
 if [ ! "$email" == "" ] ; then
-	echo "/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt"
-	/usr/bin/curl -v $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
+	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 exit # exit from su
 cd ~
