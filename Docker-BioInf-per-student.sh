@@ -42,6 +42,7 @@ sudo useradd -g docker -N -s /bin/bash --create-home $nuser
 sudo setquota -u $nuser $quota $quota 0 0 /
 cd /home/$nuser
 echo $admin | sudo tee admin > /dev/null
+echo $smtp_url | sudo tee smtp_url > /dev/null
 echo $nuser | sudo tee nuser > /dev/null
 echo $base | sudo tee base > /dev/null
 echo $portD | sudo tee portD > /dev/null
@@ -51,6 +52,7 @@ echo $start | sudo tee start > /dev/null
 
 sudo su $nuser
 admin=`cat admin`
+smtp_url=`cat smtp_url`
 nuser=`cat nuser`
 uid=$(id -u $nuser)
 gid=$(id -g $nuser)
@@ -166,7 +168,7 @@ http {
     location /j/ {
 #      rewrite ^/j/(.*)\$ /\$1 break;
       proxy_pass http://localhost:8888;
-      proxy_redirect http://localhost:8888/j $URLj/;
+      proxy_redirect http://localhost:8888 https://${IP}0 ;
 		proxy_set_header X-Real-IP \$remote_addr;
 		proxy_set_header Host \$host;
 		proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -427,11 +429,10 @@ If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )
 2) Send this IP to $admin to adjust firewall.
  
- 
 END
-exit # exit from su
 if [ "$email" -ne "" ] ; then
 	echo "/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt"
 	/usr/bin/curl -v $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
+exit # exit from su
 cd ~
