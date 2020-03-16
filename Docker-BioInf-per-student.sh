@@ -39,16 +39,15 @@ if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c
 if [ "$start" == "" ] ; then start="h" ; fi
 
 sudo useradd -g docker -N -s /bin/bash --create-home $nuser
-sudo quota -vs $nuser
 sudo setquota -u $nuser $quota $quota 0 0 /
 cd /home/$nuser
-echo $admin | sudo tee admin
-echo $nuser | sudo tee nuser
-echo $base | sudo tee base
-echo $portD | sudo tee portD
-echo $quota | sudo tee quota
-echo $pass | sudo tee pass
-echo $start | sudo tee start
+echo $admin | sudo tee admin > /dev/null
+echo $nuser | sudo tee nuser > /dev/null
+echo $base | sudo tee base > /dev/null
+echo $portD | sudo tee portD > /dev/null
+echo $quota | sudo tee quota > /dev/null
+echo $pass | sudo tee pass > /dev/null
+echo $start | sudo tee start > /dev/null
 
 sudo su $nuser
 admin=`cat admin`
@@ -78,7 +77,6 @@ done
 rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser
-docker volume inspect $nuser
 pushd /home/$nuser/setup
 
 key=/cert/live/$base/privkey.pem
@@ -143,6 +141,7 @@ http {
     error_log /var/log/nginx-error.log error;
   server {
     listen 443 ssl;
+    root /usr/share/novnc
     rewrite ^/\$ $URLs/ permanent;
     rewrite ^/s\$ $URLs/ permanent; 
     location /s/ {
@@ -165,9 +164,9 @@ http {
     }
     rewrite ^/j\$ $URLj/ permanent; 
     location /j/ {
-      rewrite ^/j/(.*)\$ /\$1 break;
-      proxy_pass http://localhost:8000;
-      proxy_redirect http://localhost:8000/ $URLj/;
+#      rewrite ^/j/(.*)\$ /\$1 break;
+      proxy_pass http://localhost:8888;
+      proxy_redirect http://localhost:8888/j $URLj/;
 		proxy_set_header X-Real-IP \$remote_addr;
 		proxy_set_header Host \$host;
 		proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -215,7 +214,7 @@ rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
-echo -e "c.NotebookApp.password = u'\$PASS'\nc.JupyterHub.bind_url = 'http://127.0.0.1:8000'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
+echo -e "c.NotebookApp.password = u'\$PASS'\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 
 echo -e "#!/bin/bash
@@ -328,9 +327,9 @@ stopsignal=TERM
 numprocs=1
 redirect_stderr=true
 " > RStudio.conf
-
+#  --certfile=$cert --keyfile=$key
 echo -e "[program:4_jupyter_notebook]
-command=/sbin/runuser -u $nuser -- jupyter notebook -y --no-browser --certfile=$cert --keyfile=$key --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
+command=/sbin/runuser -u $nuser -- jupyter notebook -y --ip=0.0.0.0 --no-browser --config=/home/$nuser/.jupyter/jupyter_notebook_config.py
 stdout_logfile=/var/log/jupyter_notebook.log
 directory=/home/$nuser
 autostart=$startj
