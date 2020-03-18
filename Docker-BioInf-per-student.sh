@@ -436,13 +436,16 @@ User: $nuser
 Password: $pass
  
 Addresses:
-1) Dashboard - https://${base}:${portD}0
+1) Dashboard - ${URLp}
 2) ssh -X ${nuser}@${base} -p ${portD}2
+   or ssh://${nuser}@${base}:${portD}2
 3) RStudio (should be started in Dashboard) - $URLr
 4) Jupier notebook (should be started in Dashboard) - $URLj 
 5) ShellInABox (should be started in Dashboard) - $URLb 
 6) VNC (should be started in Dashboard) - $URLn/vnc.html
- 
+7) Download files from docker ${URLp}/home/
+8) Server tasks monitoring http://${base}:61208
+
 If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )
 2) Send this IP to $admin to adjust firewall.
