@@ -2,7 +2,7 @@
 
 ### System for generation of multiple Docker containers for students/users/data scientists.
 
-Include LXDE with noVNC access, RStudio, Jupyter notebook, ShellInABox, SSH.
+Include LXDE with noVNC access, RStudio, Jupyter notebook, ShellInABox, SSH, Glances.
 
 Containers generated from user tables "staff.tsv" and "users.tsv" (can be generated automatically) on the same IP with 10 ports step.
 
@@ -16,7 +16,10 @@ In each container opened ports/programms:
  * ShellInABox (should be started in Dashboard) - https://host.domain:port0/b
  * VNC (should be started in Dashboard) - https://host.domain:port1/vnc.html
  
- Edit Settings.ini (generated automaticaly at first run) for your preferences.
+    Edit Settings.ini (generated automaticaly at first run) for your preferences.
+
+
+ Tasks/containers monitoring programm Glances - http://host.domain:61208
  
  Dr. Pawel Zayakin
 

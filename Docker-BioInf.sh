@@ -46,6 +46,7 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 		# cat self.key self.pem > certificate.pem
 		docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
 	fi
+	docker run -d --name=monitoring --restart="always" --net=host --privileged -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host docker.io/nicolargo/glances
 
 	sudo mkdir -p /data
 	sudo chmod +rx /data
