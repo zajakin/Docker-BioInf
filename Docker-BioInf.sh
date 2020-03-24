@@ -59,10 +59,8 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	if [ ! -e "Docker-BioInf/Dockerfile" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile ; fi
 	docker build -t docker-bioinf Docker-BioInf
 fi
-if [ ! -e "Docker-BioInf-per-student.sh" ]; then
-	wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
-	chmod +x Docker-BioInf-per-student.sh
-fi
+wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
+chmod +x Docker-BioInf-per-student.sh
 if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
 # Download sample of file with users login and pass
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
