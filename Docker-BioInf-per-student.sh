@@ -426,7 +426,15 @@ redirect_stderr=true
 ' > restart_server.conf
 
 chmod +r *
-sleep 10s
+while [ `docker top $nuser | grep -c /usr/bin/supervisord` -ne 1 ]
+do
+  sleep 1s
+done
+sleep 2s
+while [ `docker top $nuser | grep -c supervisor/conf.d/setup.sh` -ne 0 ]
+do
+  sleep 1s
+done
 docker exec -it $nuser pkill supervisord
 popd > /dev/null
 echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLp" > docker.txt
