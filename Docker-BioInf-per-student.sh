@@ -249,7 +249,6 @@ http {
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get install libnginx-mod-http-auth-pam -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
 env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
 env DEBIAN_FRONTEND=noninteractive apt-get clean -y
@@ -258,7 +257,7 @@ env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
 rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
-echo -e "c.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee /home/$nuser/.jupyter/jupyter_notebook_config.py
+echo -e "c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee -a /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
 # PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
 # echo -e "c.NotebookApp.password = u'\$PASS'\n

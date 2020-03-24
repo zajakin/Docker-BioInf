@@ -19,7 +19,6 @@ sudo apt upgrade -y --no-install-recommends
 sudo apt dist-upgrade -y --no-install-recommends
 sudo apt autoremove -y
 sudo apt autoclean -y
-sudo certbot renew
 if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
@@ -52,15 +51,15 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	sudo chmod +rx /data
 	sudo chown $USER /data
 	docker volume create --opt type=none --opt device=/data --opt o=bind,size=2TB --name data
-	
-	docker pull debian:testing
-	rm -r Docker-BioInf
-	mkdir Docker-BioInf
-	if [ ! -e "Docker-BioInf/Dockerfile" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile ; fi
-	docker build -t docker-bioinf Docker-BioInf
 fi
 wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 chmod +x Docker-BioInf-per-student.sh
+docker pull debian:testing
+rm -r Docker-BioInf
+mkdir Docker-BioInf
+wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
+docker build -t docker-bioinf Docker-BioInf
+sudo certbot renew
 if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
 # Download sample of file with users login and pass
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
