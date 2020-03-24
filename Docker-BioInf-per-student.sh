@@ -64,7 +64,8 @@ start=`cat start`
 email=`cat email`
 URLp="https://${base}:${portD}0"
 URLs="${URLp}/s"
-URLn="https://${base}:${portD}1"
+# URLn="https://${base}:${portD}1"
+URLn="${URLp}/n"
 URLb="${URLp}/b"
 URLr="${URLp}/r"
 URLj="${URLp}/j"
@@ -90,12 +91,12 @@ tee update.sh << END > /dev/null
 #!/bin/bash
 for pic in supervisor rstudio jupyter noVNC shellinabox
 do
-	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/lib/python3/dist-packages/supervisor/ui/\${pic}.png
+	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
 done
 ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
+sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
 mkdir /var/log/nginx
@@ -211,21 +212,24 @@ http {
 		rewrite ^/n\$ $URLn/ permanent;
 		location /n/ {
 			rewrite ^/n/(.*)\$ /\$1 break;
+			auth_pam                "Secure zone";
+			auth_pam_service_name   "nginx";
 			proxy_pass http://localhost:5900;
 			proxy_redirect http://localhost:5900/ $URLn/;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection \$connection_upgrade;
-			proxy_read_timeout 20d;
+			proxy_read_timeout 1d;
 			proxy_buffering off;
 		}
-		rewrite ^/websockify\$ $URLn/n/websockify permanent;
-		location /n/websockify {
+		location /websockify {
 			proxy_http_version 1.1;
+			auth_pam                "Secure zone";
+			auth_pam_service_name   "nginx";
 			proxy_pass http://vnc_proxy;
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection "upgrade";
-			proxy_read_timeout 300s;
+			proxy_read_timeout 1d;
 			proxy_buffering off;
 		}
 		rewrite ^/b\$ $URLb/ permanent; 
@@ -245,6 +249,7 @@ http {
 env DEBIAN_FRONTEND=noninteractive apt-get update -y
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get install libnginx-mod-http-auth-pam -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
 env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
 env DEBIAN_FRONTEND=noninteractive apt-get clean -y
@@ -304,8 +309,8 @@ numprocs=1
 redirect_stderr=true
 ' > setup.conf
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
-docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:5900 -p ${portD}2:22 --workdir /home/$nuser \
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}1:5900 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
+docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}2:22 --workdir /home/$nuser \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
@@ -457,14 +462,15 @@ Addresses:
 3) RStudio (should be started in Dashboard) - $URLr
 4) Jupier notebook (should be started in Dashboard) - $URLj 
 5) ShellInABox (should be started in Dashboard) - $URLb 
-6) VNC (should be started in Dashboard) - $URLn/vnc.html
+6) VNC (should be started in Dashboard) - $URLn
 7) Download files from docker ${URLp}/home/
-8) Server tasks monitoring http://${base}:61208
+8) Shared files without password ${URLp}/public/
 
 If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )
 2) Send this IP to $admin to adjust firewall.
- 
+
+Server tasks monitoring http://${base}:61208 
 .
 END
 

@@ -10,16 +10,17 @@ Containers generated from user tables "staff.tsv" and "users.tsv" (can be genera
 In each container opened ports/programms:
 
  * Dashboard (Supervisord) - https://host.domain:port0
- * RStudio (should be started in Dashboard) - https://host.domain:port0/r
- * Jupier notebook (should be started in Dashboard) - https://host.domain:port0/j
- * ShellInABox (should be started in Dashboard) - https://host.domain:port0/b
- * VNC (should be started in Dashboard) - https://host.domain:port1/vnc.html
+ * RStudio - https://host.domain:port0/r
+ * Jupier notebook - https://host.domain:port0/j
+ * ShellInABox - https://host.domain:port0/b
+ * VNC - https://host.domain:port0/n
  * ssh://username@host.domain:port2
 
                 ssh -X username@host.domain -p port2
 
- 
-    Edit Settings.ini (generated automaticaly at first run) for your preferences.
+All services should be started in Dashboard or selected for autostart in "Settings.ini".
+
+Edit "Settings.ini" (generated automaticaly at first run) for your preferences.
 
 
  Tasks/containers monitoring programm Glances - http://host.domain:61208
