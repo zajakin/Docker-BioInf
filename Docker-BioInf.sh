@@ -61,22 +61,25 @@ wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-Bi
 docker build -t docker-bioinf Docker-BioInf
 sudo certbot renew
 if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
+
+# Add users and create Dockers
 # Download sample of file with users login and pass
 if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/master/sample_users.tsv -O users.tsv ; fi
 # Or generate automatically
 # rm users.tsv
-
-count=20
-for i in {300..650}
-	do
-	if [ `grep -c "^$i$" usedports` != 0 ]; then continue; fi
-	if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
-	echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t" >> users.tsv
-	count=$[count-1]
-	if [ $count == 0 ]; then break; fi
-done
+if [ ! -e "users.tsv" ]; then 
+	count=20
+	for i in {300..650}
+		do
+		if [ `grep -c "^$i$" usedports` != 0 ]; then continue; fi
+		if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
+		echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t" >> users.tsv
+		count=$[count-1]
+		if [ $count == 0 ]; then break; fi
+	done
+fi
 cat  users.tsv
-# Add users and create Dockers    staff.tsv contains permament users
+# staff.tsv contains permament users
 cat staff.tsv
 grep -h -v "^#" staff.tsv users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 cat ../user*/docker.txt > docker.txt
@@ -90,6 +93,8 @@ docker ps -a
 docker volume ls
 docker system df
 docker system df -v
+
+ls .. | xargs -i docker top {} | awk '{print $1}' | sort | uniq -c
 
 # Delete user*
 ls .. | grep user

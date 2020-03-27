@@ -2,7 +2,7 @@
 
 ### System for generation of multiple Docker containers for students/users/data scientists.
 
-Include Debian/LXDE with noVNC access, RStudio, Jupyter notebook, ShellInABox, SSH, Glances.
+Include Debian/LXDE with noVNC access, RStudio, Jupyter notebook, ShellInABox, SSH, MOSH, Glances.
 
 Containers generated from user tables "staff.tsv" and "users.tsv" (can be generated automatically) on the same IP with 10 ports step.
 
@@ -17,6 +17,8 @@ In each container opened ports/programms:
  * ssh://username@host.domain:port2
 
                 ssh -X username@host.domain -p port2
+
+                mosh username@host.domain -p port1
 
 All services should be started in Dashboard or selected for autostart in "Settings.ini".
 

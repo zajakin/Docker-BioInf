@@ -5,7 +5,7 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		locales sudo mc wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
-		shellinabox ssh tmux supervisor bash-completion \
+		shellinabox ssh mosh tmux supervisor bash-completion \
 		policykit-1-gnome dbus-x11 firefox-esr geany \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask \
 		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc \

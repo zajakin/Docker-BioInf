@@ -93,20 +93,20 @@ for pic in supervisor rstudio jupyter noVNC shellinabox
 do
 	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
 done
-ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
+ln -sf /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
 sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
-mkdir /var/log/nginx
+if [ `cat /etc/ssh/sshd_config | grep -c "^X11UseLocalhost no"` -eq 0 ] ; then echo "X11UseLocalhost no" >> /etc/ssh/sshd_config ; fi
 mkdir /var/log/nginx
 echo '@include common-auth' > /etc/pam.d/nginx
 usermod -aG shadow www-data
 mkdir /home/$nuser/public
 chown ${nuser}:${nuser} /home/$nuser/public
-ln -s /home/$nuser/public /usr/share/novnc/public
-ln -s /home/$nuser /usr/share/novnc/home
+ln -sfn /home/$nuser/public /usr/share/novnc/public
+ln -sfn /home/$nuser /usr/share/novnc/home
 echo 'daemon off;
 user www-data;
 worker_processes 2;
@@ -122,7 +122,7 @@ http {
 		""      close;
 	}
 	upstream vnc_proxy {
-		server 127.0.0.1:5900;
+		server 127.0.0.1:6000;
 	}
 	sendfile on;
 	tcp_nopush on;
@@ -153,8 +153,8 @@ http {
 			auth_pam                "Secure zone";
 			auth_pam_service_name   "nginx";
 			rewrite ^/s/(.*)\$ /\$1 break;
-			proxy_pass http://localhost:9001;
-			proxy_redirect http://localhost:9001/ $URLs/;
+			proxy_pass http://localhost:9000;
+			proxy_redirect http://localhost:9000/ $URLs/;
 			proxy_http_version 1.1;
 			proxy_buffering off;
 		}
@@ -214,8 +214,8 @@ http {
 			rewrite ^/n/(.*)\$ /\$1 break;
 			auth_pam                "Secure zone";
 			auth_pam_service_name   "nginx";
-			proxy_pass http://localhost:5900;
-			proxy_redirect http://localhost:5900/ $URLn/;
+			proxy_pass http://localhost:6000;
+			proxy_redirect http://localhost:6000/ $URLn/;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade \$http_upgrade;
 			proxy_set_header Connection \$connection_upgrade;
@@ -293,7 +293,7 @@ chmod = 0777
 chown= nobody:nogroup
 
 [inet_http_server]
-port=0.0.0.0:9001
+port=0.0.0.0:9000
 " > supervisord.conf
 
 echo -e '[program:setup]
@@ -308,14 +308,14 @@ numprocs=1
 redirect_stderr=true
 ' > setup.conf
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}1:5900 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
-docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}2:22 --workdir /home/$nuser \
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}1:6000 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
+docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1 -p ${portD}2:22 --workdir /home/$nuser \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
-# command=websockify --web=/usr/share/novnc/ --key=$key --cert=$cert 5900 localhost:5901
+# command=websockify --web=/usr/share/novnc/ --key=$key --cert=$cert 6000 localhost:5900
 echo -e "[program:1_novnc_1_novnc]
-command=websockify --web=/usr/share/novnc/ 5900 localhost:5901
+command=websockify --web=/usr/share/novnc/ 6000 localhost:5900
 stdout_logfile=/var/log/novnc.log
 autostart=$startn
 autorestart=true
@@ -325,9 +325,9 @@ numprocs=1
 redirect_stderr=true
 " > novnc.conf
 
-# command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
+# command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5900 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 echo -e "[program:1_novnc_2_vnc]
-command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5901 -SecurityTypes None -xstartup /usr/bin/startlxde
+command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5900 -SecurityTypes None -xstartup /usr/bin/startlxde
 stdout_logfile=/var/log/vnc.log
 autostart=$startn
 autorestart=true
@@ -458,12 +458,13 @@ Addresses:
 1) Dashboard - ${URLp}
 2) ssh -X ${nuser}@${base} -p ${portD}2
    or ssh://${nuser}@${base}:${portD}2
-3) RStudio (should be started in Dashboard) - $URLr
-4) Jupier notebook (should be started in Dashboard) - $URLj 
-5) ShellInABox (should be started in Dashboard) - $URLb 
-6) VNC (should be started in Dashboard) - $URLn
-7) Download files from docker ${URLp}/home/
-8) Shared files without password ${URLp}/public/
+3) mosh ${nuser}@${base} -p ${portD}1
+4) RStudio (should be started in Dashboard) - $URLr
+5) Jupier notebook (should be started in Dashboard) - $URLj 
+6) ShellInABox (should be started in Dashboard) - $URLb 
+7) VNC (should be started in Dashboard) - $URLn
+8) Download files from docker ${URLp}/home/
+9) Shared files without password ${URLp}/public/
 
 If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )
