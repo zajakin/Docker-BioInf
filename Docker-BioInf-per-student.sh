@@ -253,11 +253,12 @@ env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
 env DEBIAN_FRONTEND=noninteractive apt-get clean -y
 OLDCONF=\$(dpkg -l|grep "^rc"|awk '{print \$2}')
 env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
-rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
+rm -f /home/$nuser/core &> /dev/null
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 echo -e "c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee -a /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
+# rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 # PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
 # echo -e "c.NotebookApp.password = u'\$PASS'\n
 tee setup.sh << END > /dev/null

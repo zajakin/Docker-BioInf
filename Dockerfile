@@ -8,10 +8,10 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
 		shellinabox ssh mosh tmux supervisor bash-completion \
 		policykit-1-gnome dbus-x11 firefox-esr geany \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask \
-		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc \
-		gdebi-core r-base-core git jupyter-notebook python3-pip fastp cnvkit seqtk \
+		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc xbase-clients \
+		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt samtools fastqc ncbi-blast+ kraken2 python3-htseq rna-star \
-		picard-tools bbmap trimmomatic radiant && \
+		fastp cnvkit seqtk picard-tools bbmap trimmomatic radiant && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
 # GTK 2 and 3 settings for icons and style, wallpaper   # tophat cufflinks trnascan-se fastx-toolkit 
