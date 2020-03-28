@@ -14,11 +14,11 @@ In each container opened ports/programms:
  * Jupier notebook - https://host.domain:port0/j
  * ShellInABox - https://host.domain:port0/b
  * VNC - https://host.domain:port0/n
- * ssh://username@host.domain:port2
+ * SSH - ssh://username@host.domain:port2
 
                 ssh -X username@host.domain -p port2
 
- * Experimental: MOSH
+ * MOSH
 
                 mosh username@host.domain -p port1 --ssh="ssh -p port2"
 

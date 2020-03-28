@@ -327,7 +327,7 @@ redirect_stderr=true
 
 # command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5900 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 echo -e "[program:1_novnc_2_vnc]
-command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5900 -SecurityTypes None -xstartup /usr/bin/startlxde
+command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5899 -SecurityTypes None -xstartup /usr/bin/startlxde
 stdout_logfile=/var/log/vnc.log
 autostart=$startn
 autorestart=true
@@ -458,7 +458,7 @@ Addresses:
 1) Dashboard - ${URLp}
 2) ssh -X ${nuser}@${base} -p ${portD}2
    or ssh://${nuser}@${base}:${portD}2
-3) experimental: mosh ${nuser}@${base} -p ${portD}1 --ssh="ssh -p ${portD}2"
+3) mosh ${nuser}@${base} -p ${portD}1 --ssh="ssh -p ${portD}2"
 4) RStudio (should be started in Dashboard) - $URLr
 5) Jupier notebook (should be started in Dashboard) - $URLj 
 6) ShellInABox (should be started in Dashboard) - $URLb 
