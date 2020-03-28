@@ -186,7 +186,7 @@ http {
 			proxy_pass http://localhost:8888 ;
 			proxy_redirect http://localhost:8888/j ${URLj} ;
 			proxy_set_header X-Real-IP \$remote_addr;
-			proxy_set_header Host \$host:3000;
+			proxy_set_header Host \$host:${portD}0;
 			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade \$http_upgrade;
@@ -199,7 +199,7 @@ http {
 			auth_pam                "Secure zone";
 			auth_pam_service_name   "nginx";
 			proxy_set_header X-Real-IP \$remote_addr;
-			proxy_set_header Host \$host:3000;
+			proxy_set_header Host \$host:${portD}0;
 			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 			proxy_set_header X-NginX-Proxy true;
 			proxy_http_version 1.1;
