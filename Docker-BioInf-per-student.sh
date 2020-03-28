@@ -309,7 +309,7 @@ redirect_stderr=true
 ' > setup.conf
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}1:6000 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
-docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1 -p ${portD}2:22 --workdir /home/$nuser \
+docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
@@ -458,7 +458,7 @@ Addresses:
 1) Dashboard - ${URLp}
 2) ssh -X ${nuser}@${base} -p ${portD}2
    or ssh://${nuser}@${base}:${portD}2
-3) mosh ${nuser}@${base} -p ${portD}1
+3) experimental: mosh ${nuser}@${base} -p ${portD}1 --ssh="ssh -p ${portD}2"
 4) RStudio (should be started in Dashboard) - $URLr
 5) Jupier notebook (should be started in Dashboard) - $URLj 
 6) ShellInABox (should be started in Dashboard) - $URLb 

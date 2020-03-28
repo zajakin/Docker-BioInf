@@ -18,7 +18,9 @@ In each container opened ports/programms:
 
                 ssh -X username@host.domain -p port2
 
-                mosh username@host.domain -p port1
+ * Experimental: MOSH
+
+                mosh username@host.domain -p port1 --ssh="ssh -p port2"
 
 All services should be started in Dashboard or selected for autostart in "Settings.ini".
 

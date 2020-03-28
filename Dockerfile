@@ -27,7 +27,8 @@ RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/ske
 	mkdir -p /etc/skel/.config/ && \
 	echo '[Added Associations]\ntext/plain=mousepad.desktop;\n' > /etc/skel/.config/mimeapps.list
 ENV NOTVISIBLE "in users profile"
-RUN sed -i -e 's/# en_GB.UTF-8 UTF-8/en_GB.utf8 UTF-8/' /etc/locale.gen && \
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.utf8 UTF-8/' /etc/locale.gen && \
+	sed -i -e 's/# en_GB.UTF-8 UTF-8/en_GB.utf8 UTF-8/' /etc/locale.gen && \
 	sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.utf8 UTF-8/' /etc/locale.gen && \
 	sed -i -e 's/# lv_LV.UTF-8 UTF-8/lv_LV.utf8 UTF-8/' /etc/locale.gen && \
 	locale-gen && \

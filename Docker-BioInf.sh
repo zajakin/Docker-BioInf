@@ -57,10 +57,11 @@ chmod +x Docker-BioInf-per-student.sh
 docker pull debian:testing
 rm -r Docker-BioInf
 mkdir Docker-BioInf
-wget https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
+wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
 docker build -t docker-bioinf Docker-BioInf
 sudo certbot renew
 if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
+docker ps -a -q | xargs -l docker port  | awk -F ':' '{print substr($2, 1, length($2)-1)}' | sort | uniq > usedports
 
 # Add users and create Dockers
 # Download sample of file with users login and pass
@@ -111,8 +112,8 @@ docker top $nuser
 docker restart $nuser 
 docker stop $nuser 
 docker rm $nuser 
-docker volume rm $nuser
-sudo userdel --remove $nuser
+# docker volume rm $nuser
+# sudo userdel --remove $nuser
 
 # Stop all dockers
 docker stop $(docker ps -a -q)
