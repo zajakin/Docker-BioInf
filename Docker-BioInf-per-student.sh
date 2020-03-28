@@ -64,7 +64,6 @@ start=`cat start`
 email=`cat email`
 URLp="https://${base}:${portD}0"
 URLs="${URLp}/s"
-# URLn="https://${base}:${portD}1"
 URLn="${URLp}/n"
 URLb="${URLp}/b"
 URLr="${URLp}/r"
@@ -308,14 +307,13 @@ numprocs=1
 redirect_stderr=true
 ' > setup.conf
 
-# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base -p ${portD}1:6000 -p ${portD}4:4200 -p ${portD}7:8787 -p ${portD}3:8888
+# --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
 docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
-# command=websockify --web=/usr/share/novnc/ --key=$key --cert=$cert 6000 localhost:5900
 echo -e "[program:1_novnc_1_novnc]
-command=websockify --web=/usr/share/novnc/ 6000 localhost:5900
+command=websockify --web=/usr/share/novnc/ 6000 localhost:5902
 stdout_logfile=/var/log/novnc.log
 autostart=$startn
 autorestart=true
@@ -325,9 +323,8 @@ numprocs=1
 redirect_stderr=true
 " > novnc.conf
 
-# command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5900 -SecurityTypes VncAuth -PasswordFile /home/$nuser/.vnc/passwd -xstartup /usr/bin/startlxde
 echo -e "[program:1_novnc_2_vnc]
-command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :1 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5899 -SecurityTypes None -xstartup /usr/bin/startlxde
+command=/sbin/runuser -u $nuser -- /usr/bin/vncserver :2 -fg -localhost yes -depth 24 -geometry 1920x1080 -port 5902 -SecurityTypes None -xstartup /usr/bin/startlxde
 stdout_logfile=/var/log/vnc.log
 autostart=$startn
 autorestart=true
