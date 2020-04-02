@@ -4,12 +4,12 @@
 if [ -e "Settings.ini" ]; then source Settings.ini
 else
 tee Settings.ini << END
-	#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
-	smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
-	admin="admin@edu.eu"
-	if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
-	alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
-	if [ "$quota" == "" ] ; then quota="10G" ; fi  # "200M" or "10G" or "1T"
+#for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
+smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
+admin="admin@edu.eu"
+if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
+alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
+if [ "$quota" == "" ] ; then quota="10G" ; fi  # "200M" or "10G" or "1T"
 END
 source Settings.ini
 fi
@@ -38,12 +38,12 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	( sudo crontab -l | grep -v -F "certbot renew" ; echo "42 2 * * 7 certbot renew --quiet" ) | sudo crontab -
 	docker volume create --opt type=volume --opt device=/etc/letsencrypt --opt o=bind --name cert # -v cert:/cert:ro
 	if [ `docker volume ls | grep -c " cert\$"` -ne 1 ] ; then
-		mkdir -p cert/live/$base/
-		key=cert/live/$base/privkey.pem
-		cert=cert/live/$base/fullchain.pem
-		openssl req -x509 -nodes -newkey rsa:2048 -keyout $key -out $cert -batch -days 3650
-		# cat self.key self.pem > certificate.pem
-		docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
+mkdir -p cert/live/$base/
+key=cert/live/$base/privkey.pem
+cert=cert/live/$base/fullchain.pem
+openssl req -x509 -nodes -newkey rsa:2048 -keyout $key -out $cert -batch -days 3650
+# cat self.key self.pem > certificate.pem
+docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
 	fi
 	docker run -d --name=monitoring --restart="always" --net=host --privileged -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host docker.io/nicolargo/glances
 
@@ -71,16 +71,18 @@ if [ ! -e "users.tsv" ]; then wget https://github.com/zajakin/Docker-BioInf/raw/
 if [ ! -e "users.tsv" ]; then 
 	count=20
 	for i in {300..650}
-		do
-		if [ `grep -c "^$i$" usedports` != 0 ]; then continue; fi
-		if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
-		echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t" >> users.tsv
-		count=$[count-1]
-		if [ $count == 0 ]; then break; fi
+	do
+[ `grep -c "^$i$" usedports` != 0 ] && continue
+[ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ] && continue
+echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t" >> users.tsv
+count=$[count-1]
+[ $count == 0 ] && break
 	done
 fi
+		# if [ `grep -c "^$i$" usedports` -ne 0 ]; then continue; fi
+		# if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
 cat  users.tsv
-# staff.tsv contains permament users
+# staff.tsv contains permament users.  User can be temporary excluded by symbol "#" in the beginning of row
 cat staff.tsv
 grep -h -v "^#" staff.tsv users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 cat ../user*/docker.txt > docker.txt
@@ -124,4 +126,8 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # Remove all docker images
 # docker rmi $(docker images -q)
 # Remove docker images without correct names
-docker rmi $(docker images | grep "<none> .*<none>" | awk '{print $3}') 
+docker ps -a > dockers
+# Old versions of Docker images
+docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $NF}'
+# Remove not used Docker images
+docker rmi $(docker images | grep "<none>" | awk '{print $3}') 
