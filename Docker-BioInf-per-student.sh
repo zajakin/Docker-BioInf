@@ -309,7 +309,7 @@ redirect_stderr=true
 ' > setup.conf
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
-docker run -d --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
+docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
@@ -336,7 +336,7 @@ redirect_stderr=true
 " > vnc.conf
  
 echo -e '[program:1_novnc_3_remove_X_win_start_lock]
-command=/bin/bash -c "rm -f /tmp/.X1-lock; rm -fr /tmp/.X11-unix; pkill Xtigervnc; pkill mem-cached; pkill websockify; pkill ssh-agent"
+command=/bin/bash -c "rm -f /tmp/.X2-lock; rm -fr /tmp/.X11-unix; pkill Xtigervnc; pkill mem-cached; pkill websockify; pkill ssh-agent"
 stdout_logfile=/var/log/remove_X_win_start_lock.log
 autostart=false
 autorestart=false
