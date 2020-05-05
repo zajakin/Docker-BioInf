@@ -1,22 +1,24 @@
 FROM debian:testing
-RUN env DEBIAN_FRONTEND=noninteractive apt-get update && \
+RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
+  env DEBIAN_FRONTEND=noninteractive apt-get update && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils && \
 	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		locales sudo mc wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
-		shellinabox ssh mosh tmux supervisor bash-completion \
-		policykit-1-gnome dbus-x11 firefox-esr geany \
+		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 \
+		policykit-1-gnome dbus-x11 midori shotwell zathura geany meld gnumeric fonts-firacode \
 		build-essential gfortran libgfortran-10-dev liblapack-dev libblas-dev libopenblas-dev \
 		libxml2-dev libjpeg-dev libcurl4-openssl-dev libssl-dev zlib1g-dev \
-		lxde-core lxlauncher lxterminal lxmenu-data lxtask \
+		lxde-core lxlauncher lxterminal lxmenu-data lxtask synaptic xarchiver \
 		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc xbase-clients \
 		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt samtools fastqc ncbi-blast+ kraken2 python3-htseq rna-star \
-		fastp cnvkit seqtk picard-tools bbmap trimmomatic radiant && \
+		fastp cnvkit seqtk picard-tools cufflinks bbmap trnascan-se trimmomatic radiant \
+		sortmerna bcftools gffread bedtools && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   # tophat cufflinks trnascan-se fastx-toolkit 
+# GTK 2 and 3 settings for icons and style, wallpaper   # tophat fastx-toolkit 
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
