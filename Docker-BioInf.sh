@@ -41,10 +41,12 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 mkdir -p cert/live/$base/
 key=cert/live/$base/privkey.pem
 cert=cert/live/$base/fullchain.pem
-openssl req -x509 -nodes -newkey rsa:2048 -keyout $key -out $cert -batch -days 3650
+if [ -e "$cert" ]; then openssl req -x509 -nodes -newkey rsa:2048 -keyout $key -out $cert -batch -days 3650
+fi
 # cat self.key self.pem > certificate.pem
 docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
 	fi
+	docker pull docker.io/nicolargo/glances
 	docker run -d --name=monitoring --restart="always" --net=host --privileged -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host docker.io/nicolargo/glances
 
 	sudo mkdir -p /data
@@ -82,15 +84,16 @@ fi
 		# if [ `grep -c "^$i$" usedports` -ne 0 ]; then continue; fi
 		# if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
 cat  users.tsv
+cat users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 # staff.tsv contains permament users.  User can be temporary excluded by symbol "#" in the beginning of row
 cat staff.tsv
-grep -h -v "^#" staff.tsv users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
+grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 cat ../user*/docker.txt > docker.txt
 
 exit  # Not start later code automatically
 # check users and space
-cat /etc/passwd | grep /home/
-sudo repquota -s /
+cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
+(sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
 docker images
 docker ps -a
 docker volume ls
