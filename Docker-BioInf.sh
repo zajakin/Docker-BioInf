@@ -130,7 +130,7 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # docker rmi $(docker images -q)
 # Remove docker images without correct names
 # Old versions of Docker images
-docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $NF}'
+docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 # Actual versions
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $NF}'
 # Remove not used Docker images
