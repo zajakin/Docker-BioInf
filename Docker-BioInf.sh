@@ -91,6 +91,9 @@ grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-Bi
 cat ../user*/docker.txt > docker.txt
 
 exit  # Not start later code automatically
+#run command for users
+awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c 
+awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
 # check users and space
 cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
 (sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
@@ -131,8 +134,7 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # Remove docker images without correct names
 # Old versions of Docker images
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
-
-
+#Volumes
 (docker ps -a  | awk '{print $1}' | grep -v "CONTAINER" | sort | uniq | xargs docker inspect -f '{{ .Mounts }}') | sed 's!/var/lib/docker/volumes/!!g' | sed 's!volume !!g'
 # Actual versions
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $NF}'
