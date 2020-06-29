@@ -51,6 +51,7 @@ echo $quota | sudo tee quota > /dev/null
 echo $pass | sudo tee pass > /dev/null
 echo $start | sudo tee start > /dev/null
 echo $email | sudo tee email > /dev/null
+echo $command | sudo tee command > /dev/null
 
 sudo su $nuser
 admin=`cat admin`
@@ -81,6 +82,8 @@ done
 
 rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
+chmod +x ./command
+./command
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser > /dev/null
 pushd /home/$nuser/setup  > /dev/null
 
@@ -478,5 +481,4 @@ if [ ! "$email" == "" ] ; then
 	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 exit # exit from su
-$command
 cd ~
