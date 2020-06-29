@@ -1,3 +1,6 @@
--u	user00	-b	serv1.edu.eu	-o	200	-q	2T	-p	pass1200	-s	h	-m	user00@edu.eu
--u	user01	-b	serv1.edu.eu	-o	201	-q	2T			-s	bh	-m	user01@edu.eu
--u	user02	-b	serv1.edu.eu	-o	202			-p	pass1202	-s	hr	-m	user02@edu.eu
+-u	user00	-b	serv1.edu.eu	-o	200	-q	2T	-p	pass1200	-s	h	-m	user00@edu.eu	-c	"mkdir -p /home/$nuser/$nuser/NAS && echo $pass | sshfs -o StrictHostKeyChecking=accept-new -o password_stdin nas.edu.eu:/homes/$nuser /home/$nuser/$nuser/NAS
+"
+-u	user01	-b	serv1.edu.eu	-o	201	-q	2T			-s	bh	-m	user01@edu.eu	-c	"mkdir -p /home/$nuser/$nuser/NAS && echo $pass | sshfs -o StrictHostKeyChecking=accept-new -o password_stdin nas.edu.eu:/homes/$nuser /home/$nuser/$nuser/NAS
+"
+-u	user02	-b	serv1.edu.eu	-o	202			-p	pass1202	-s	hr	-m	user02@edu.eu	-c	"mkdir -p /home/$nuser/$nuser/NAS && echo $pass | sshfs -o StrictHostKeyChecking=accept-new -o password_stdin nas.edu.eu:/homes/$nuser /home/$nuser/$nuser/NAS
+"

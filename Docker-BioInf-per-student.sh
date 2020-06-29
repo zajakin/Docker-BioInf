@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-while getopts ":u:b:o:q:p:s:m:" opt; do
+while getopts ":u:b:o:q:p:s:m:c:" opt; do
   case $opt in
     u) nuser="$OPTARG"
     ;;
@@ -15,12 +15,14 @@ while getopts ":u:b:o:q:p:s:m:" opt; do
     ;;
     m) email="$OPTARG"
     ;;
+    c) command="$OPTARG"
+    ;;
     \?) echo "Invalid option -$OPTARG" >&2
     ;;
   esac
 done
 source Settings.ini
-echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email"
+echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email command=[$command]"
 if [ "$nuser" == "" ] ; then
 	echo "Error! No user name"
 	read -p "Press enter to continue"
@@ -476,4 +478,5 @@ if [ ! "$email" == "" ] ; then
 	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 exit # exit from su
+$command
 cd ~
