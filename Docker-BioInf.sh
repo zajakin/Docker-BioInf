@@ -23,8 +23,8 @@ if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
 	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
-	cat /etc/fstab | grep quota  # should be usrquota,grpquota   sudo mcedit /etc/fstab
-	sudo quotacheck -ugM /
+	cat /etc/fstab | grep quota  # should be usrquota,grpquota,jqfmt=vfsv1  sudo mcedit /etc/fstab
+	sudo quotacheck -ugM -F vfsv1 /
 	read -p "To apply changes please restart computer.
 		Press enter to continue"
 	# sudo reboot
@@ -131,6 +131,9 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # Remove docker images without correct names
 # Old versions of Docker images
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
+
+
+(docker ps -a  | awk '{print $1}' | grep -v "CONTAINER" | sort | uniq | xargs docker inspect -f '{{ .Mounts }}') | sed 's!/var/lib/docker/volumes/!!g' | sed 's!volume !!g'
 # Actual versions
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $NF}'
 # Remove not used Docker images
