@@ -125,6 +125,8 @@ docker rm $nuser
 
 # Stop all dockers
 docker stop $(docker ps -a -q)
+# Restart all dockers
+docker restart $(docker ps -a -q)
 # Remove no active dockers
 docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # Remove all dockers
