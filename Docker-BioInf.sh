@@ -118,6 +118,7 @@ nuser="user300"
 echo $nuser
 docker top $nuser 
 docker restart $nuser 
+awk -F"\t" "/$nuser/ {print \$NF}" staff.tsv | xargs -l1 bash -c 
 docker stop $nuser 
 docker rm $nuser 
 # docker volume rm $nuser
