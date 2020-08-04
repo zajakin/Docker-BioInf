@@ -81,7 +81,7 @@ do
 done
 
 rm -rf /home/$nuser/setup /home/$nuser/log
-mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor /home/$nuser/ssh
+mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 chmod +x ./command
 ./command
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser > /dev/null
@@ -103,6 +103,8 @@ cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dis
 sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
+if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
+else cp -rf /home/$nuser/.ssh/serverkeys /etc/ssh ; fi
 if [ `cat /etc/ssh/sshd_config | grep -c "^X11UseLocalhost no"` -eq 0 ] ; then echo "X11UseLocalhost no" >> /etc/ssh/sshd_config ; fi
 mkdir /var/log/nginx
 echo '@include common-auth' > /etc/pam.d/nginx
@@ -315,7 +317,7 @@ redirect_stderr=true
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
 docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
-	-v $nuser:/home/$nuser -v /home/$nuser/ssh:/etc/ssh -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
+	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
 echo -e "[program:1_novnc_1_novnc]
