@@ -81,7 +81,7 @@ do
 done
 
 rm -rf /home/$nuser/setup /home/$nuser/log
-mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
+mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor /home/$nuser/ssh
 chmod +x ./command
 ./command
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser > /dev/null
@@ -315,7 +315,7 @@ redirect_stderr=true
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
 docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
-	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
+	-v $nuser:/home/$nuser -v /home/$nuser/ssh:/etc/ssh -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
 	-v /home/$nuser/log:/var/log --restart always docker-bioinf
 
 echo -e "[program:1_novnc_1_novnc]
