@@ -1,0 +1,11 @@
+.git
+.gitignore
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+old.sh
+staff.tsv
+Settings.ini
+README.html
