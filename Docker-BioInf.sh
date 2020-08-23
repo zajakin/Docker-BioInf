@@ -56,11 +56,12 @@ docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v 
 fi
 wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 chmod +x Docker-BioInf-per-student.sh
-docker pull debian:testing
+# docker pull debian:testing
+docker pull zajakin/docker-bioinf
 rm -r Docker-BioInf
-mkdir Docker-BioInf
-wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
-docker build -t docker-bioinf Docker-BioInf
+# mkdir Docker-BioInf
+# wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
+# docker build -t docker-bioinf Docker-BioInf
 sudo certbot renew
 if [ ! -e "usedports" ] ; then echo 2 > usedports ; fi
 docker ps -a -q | xargs -l docker port  | awk -F ':' '{print substr($2, 1, length($2)-1)}' | sort | uniq > usedports
