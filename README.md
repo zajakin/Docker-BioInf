@@ -6,6 +6,9 @@ Include Debian/LXDE with noVNC access, RStudio, Jupyter notebook, ShellInABox, S
 
 Containers generated from user tables "staff.tsv" and "users.tsv" (can be generated automatically) on the same IP with 10 ports step.
 
+To install enter this command in your terminal on server:
+
+                wget https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf.sh -O Docker-BioInf.sh && chmod +x Docker-BioInf.sh && ./Docker-BioInf.sh
 
 In each container opened ports/programms:
 
