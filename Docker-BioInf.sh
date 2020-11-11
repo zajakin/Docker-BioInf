@@ -58,7 +58,7 @@ wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioIn
 chmod +x Docker-BioInf-per-student.sh
 # docker pull debian:testing
 docker pull zajakin/docker-bioinf
-rm -r Docker-BioInf
+# rm -r Docker-BioInf
 # mkdir Docker-BioInf
 # wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile
 # docker build -t docker-bioinf Docker-BioInf
@@ -143,4 +143,4 @@ docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | s
 # Actual versions
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $NF}'
 # Remove not used Docker images
-docker rmi $(docker images | grep "<none>" | awk '{print $3}') 
+docker rmi $(docker images | awk '{print $3}') 
