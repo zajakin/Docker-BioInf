@@ -95,6 +95,8 @@ exit  # Not start later code automatically
 #run command for users
 awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
+# reload NGINX in staff's dockers (to update Letsencrypt certificate)
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
 # check users and space
 cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
 (sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
