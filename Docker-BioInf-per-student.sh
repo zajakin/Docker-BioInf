@@ -93,6 +93,12 @@ dhparam=/cert/dhparam.pem
 
 tee update.sh << END > /dev/null
 #!/bin/bash
+env DEBIAN_FRONTEND=noninteractive apt-get update -y
+env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
+env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
+env DEBIAN_FRONTEND=noninteractive apt-get clean -y
 for pic in supervisor rstudio jupyter noVNC shellinabox
 do
 	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
@@ -252,12 +258,6 @@ http {
 	}
 }' > /etc/nginx/nginx.conf
 # ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
-env DEBIAN_FRONTEND=noninteractive apt-get update -y
-env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
-env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
-env DEBIAN_FRONTEND=noninteractive apt-get clean -y
 OLDCONF=\$(dpkg -l|grep "^rc"|awk '{print \$2}')
 env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
