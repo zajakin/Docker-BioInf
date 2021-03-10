@@ -20,6 +20,7 @@ sudo apt dist-upgrade -y --no-install-recommends
 sudo apt autoremove -y
 sudo apt autoclean -y
 if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
+  sudo sed -i 's/#user_allow_other/user_allow_other/' /etc/fuse.conf
 	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
@@ -97,6 +98,10 @@ awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
 awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
+# Check the mounted folders for staff
+mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -v -f mounted.lst staff.lst > mount.lst 
+awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
+echo "  Mounted" && grep -f mounted.lst staff.lst && echo "  Not mounted" && grep -v -f mounted.lst staff.lst
 # check users and space
 cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
 (sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
@@ -139,10 +144,10 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # docker rmi $(docker images -q)
 # Remove docker images without correct names
 # Old versions of Docker images
-docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
+docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep "  {}  " dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 #Volumes
 (docker ps -a  | awk '{print $1}' | grep -v "CONTAINER" | sort | uniq | xargs docker inspect -f '{{ .Mounts }}') | sed 's!/var/lib/docker/volumes/!!g' | sed 's!volume !!g'
 # Actual versions
-docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep {} dockers | awk '{print $NF}'
+docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep "  {}  " dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 # Remove not used Docker images
 docker rmi $(docker images | awk '{print $3}') 
