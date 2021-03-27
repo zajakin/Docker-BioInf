@@ -280,6 +280,7 @@ if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	chown -R $nuser /home/$nuser
 	/etc/supervisor/conf.d/update.sh
 	mv /etc/supervisor/conf.d/setup.conf /etc/supervisor/conf.d/setup.done
+	/usr/bin/pkill supervisord
 fi
 END
 chmod +rx *.sh
