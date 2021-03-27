@@ -316,9 +316,10 @@ redirect_stderr=true
 ' > setup.conf
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
-docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 --workdir /home/$nuser \
-	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro \
-	-v /home/$nuser/log:/var/log --restart always zajakin/docker-bioinf
+docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser --workdir /home/$nuser \
+  -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 -p ${portD}3:${portD}3 -p ${portD}4:${portD}4 -p ${portD}5:${portD}5 \
+	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro -v /home/$nuser/log:/var/log \
+	--shm-size=2g --restart always zajakin/docker-bioinf
 
 echo -e "[program:1_novnc_1_novnc]
 command=websockify --web=/usr/share/novnc/ 6000 localhost:5902
@@ -470,6 +471,7 @@ Addresses:
 7) VNC (should be started in Dashboard) - $URLn
 8) Download files from docker ${URLp}/home/
 9) Shared files without password ${URLp}/public/
+10) Exposed ports for your processes: ${portD}3:${portD}3 ${portD}4:${portD}4 ${portD}5:${portD}5
 
 If you can not access to Docker container from home:
 1) Check your external IP ( for example on https://www.whatsmyip.org )

@@ -7,7 +7,7 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		locales sudo mc wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
 		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 \
-		policykit-1-gnome dbus-x11 midori shotwell zathura geany meld fonts-firacode \
+		policykit-1-gnome dbus-x11 firefox-esr shotwell zathura geany meld fonts-firacode \
 		build-essential gfortran libgfortran-10-dev liblapack-dev libblas-dev libopenblas-dev \
 		libxml2-dev libjpeg-dev libcurl4-openssl-dev libssl-dev zlib1g-dev \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask synaptic xarchiver \
