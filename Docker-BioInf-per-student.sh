@@ -110,7 +110,7 @@ sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/ho
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
 if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
-else cp -rf /home/$nuser/.ssh/serverkeys /etc/ssh ; fi
+else cp -pf /home/$nuser/.ssh/serverkeys/ssh_host* /etc/ssh ; fi
 if [ `cat /etc/ssh/sshd_config | grep -c "^X11UseLocalhost no"` -eq 0 ] ; then echo "X11UseLocalhost no" >> /etc/ssh/sshd_config ; fi
 mkdir /var/log/nginx
 echo '@include common-auth' > /etc/pam.d/nginx
@@ -119,6 +119,8 @@ mkdir /home/$nuser/public
 chown ${nuser}:${nuser} /home/$nuser/public
 ln -sfn /home/$nuser/public /usr/share/novnc/public
 ln -sfn /home/$nuser /usr/share/novnc/home
+sed -i "s/UI.initSetting('resize', 'off');/UI.initSetting('resize', 'remote');/g" /usr/share/novnc/app/ui.js
+xhost +si:localuser:root
 echo 'daemon off;
 user www-data;
 worker_processes 2;
