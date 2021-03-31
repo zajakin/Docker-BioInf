@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-while getopts ":u:b:o:q:p:s:m:c:" opt; do
+while getopts ":u:b:o:qrlp:sm:c" opt; do
   case $opt in
     u) nuser="$OPTARG"
     ;;
@@ -8,6 +8,10 @@ while getopts ":u:b:o:q:p:s:m:c:" opt; do
     o) portD="$OPTARG"
     ;;
     q) quota="$OPTARG"
+    ;;
+    r) ram="$OPTARG"
+    ;;
+    l) limit="$OPTARG"
     ;;
     p) pass="$OPTARG"
     ;;
@@ -22,7 +26,7 @@ while getopts ":u:b:o:q:p:s:m:c:" opt; do
   esac
 done
 source Settings.ini
-echo "nuser=$nuser base=$base portD=$portD quota=$quota pass=$pass start=$start email=$email command=[$command]"
+echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram pass=$pass start=$start email=$email command=[$command]"
 if [ "$nuser" == "" ] ; then
 	echo "Error! No user name"
 	read -p "Press enter to continue"
@@ -36,6 +40,8 @@ if [ "$base" == "" ] ; then exit; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
 if [ "$quota" == "" ] ; then quota="10G" ; fi
+if [ "$ram" != "" ] ; then ram="--memory='${ram}' --memory-swap='${ram}'" ; fi
+if [ "$limit" != "" ] ; then ram="--cpus='${limit}'" ; fi
 if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
 if [ "$start" == "" ] ; then start="h" ; fi
 
@@ -48,6 +54,8 @@ echo $nuser | sudo tee nuser > /dev/null
 echo $base | sudo tee base > /dev/null
 echo $portD | sudo tee portD > /dev/null
 echo $quota | sudo tee quota > /dev/null
+echo $ram | sudo tee ram > /dev/null
+echo $limit | sudo tee limit > /dev/null
 echo $pass | sudo tee pass > /dev/null
 echo $start | sudo tee start > /dev/null
 echo $email | sudo tee email > /dev/null
@@ -62,6 +70,8 @@ gid=$(id -g $nuser)
 base=`cat base`
 portD=`cat portD`
 quota=`cat quota`
+ram=`cat ram`
+limit=`cat limit`
 pass=`cat pass`
 start=`cat start`
 email=`cat email`
@@ -319,7 +329,7 @@ redirect_stderr=true
 ' > setup.conf
 
 # --user $uid:$gid -v /var/run/docker.sock:/var/run/docker.sock --net dockers-net --ip=$base
-docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser --workdir /home/$nuser \
+docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser --workdir /home/$nuser $ram $limit \
   -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 -p ${portD}3:${portD}3 -p ${portD}4:${portD}4 -p ${portD}5:${portD}5 \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro -v /home/$nuser/log:/var/log \
 	--shm-size=2g --restart always zajakin/docker-bioinf

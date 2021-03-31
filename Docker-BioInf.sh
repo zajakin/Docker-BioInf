@@ -9,7 +9,9 @@ smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
 admin="admin@edu.eu"
 if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
 alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
-if [ "$quota" == "" ] ; then quota="10G" ; fi  # "200M" or "10G" or "1T"
+if [ "$quota" == "" ] ; then quota="10G" ; fi  # HDD quota "200M" or "10G" or "1T"
+if [ "$ram" == "" ] ; then ram="4g" ; fi  # RAM quota "200m" or "10g"; should be a positive integer followed by the suffix m or g (short for megabytes, or gigabytes)
+if [ "$limit" == "" ] ; then limit="4" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
 END
 source Settings.ini
 fi
@@ -19,13 +21,14 @@ sudo apt upgrade -y --no-install-recommends
 sudo apt dist-upgrade -y --no-install-recommends
 sudo apt autoremove -y
 sudo apt autoclean -y
-if [ `docker images docker-bioinf | wc -l` -lt 2 ]; then
+if [ `docker images zajakin/docker-bioinf | wc -l` -lt 2 ]; then
   sudo sed -i 's/#user_allow_other/user_allow_other/' /etc/fuse.conf
 	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
 	cat /etc/fstab | grep quota  # should be usrquota,grpquota,jqfmt=vfsv1  sudo mcedit /etc/fstab
 	sudo quotacheck -ugM -F vfsv1 /
+	sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="cgroup_enable=memory swapaccount=1"/' /etc/default/grub && sudo update-grub
 	read -p "To apply changes please restart computer.
 		Press enter to continue"
 	# sudo reboot
@@ -78,7 +81,7 @@ if [ ! -e "users.tsv" ]; then
 	do
 [ `grep -c "^$i$" usedports` != 0 ] && continue
 [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ] && continue
-echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t\t-c\t" >> users.tsv
+echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-r\t$ram\t-l\t$limit\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\th\t-m\t\t-c\t" >> users.tsv
 count=$[count-1]
 [ $count == 0 ] && break
 	done
