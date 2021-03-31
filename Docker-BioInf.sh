@@ -11,7 +11,7 @@ if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
 alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
 if [ "$quota" == "" ] ; then quota="10G" ; fi  # HDD quota "200M" or "10G" or "1T"
 if [ "$ram" == "" ] ; then ram="4g" ; fi  # RAM quota "200m" or "10g"; should be a positive integer followed by the suffix m or g (short for megabytes, or gigabytes)
-if [ "$limit" == "" ] ; then limit="4" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
+if [ "$limit" == "" ] ; then limit="4.0" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
 END
 source Settings.ini
 fi

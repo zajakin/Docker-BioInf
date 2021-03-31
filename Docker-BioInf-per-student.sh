@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-while getopts ":u:b:o:qrlp:sm:c" opt; do
+while getopts ":u:b:o:q:r:l:p:s:m:c:" opt; do
   case $opt in
     u) nuser="$OPTARG"
     ;;
