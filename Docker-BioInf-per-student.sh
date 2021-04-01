@@ -26,7 +26,7 @@ while getopts ":u:b:o:q:r:l:p:s:m:c:" opt; do
   esac
 done
 source Settings.ini
-echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram pass=$pass start=$start email=$email command=[$command]"
+echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram limit=$limit pass=$pass start=$start email=$email command=[$command]"
 if [ "$nuser" == "" ] ; then
 	echo "Error! No user name"
 	read -p "Press enter to continue"
@@ -40,8 +40,8 @@ if [ "$base" == "" ] ; then exit; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
 if [ "$quota" == "" ] ; then quota="10G" ; fi
-if [ "$ram" != "" ] ; then ram="--memory='${ram}' --memory-swap='${ram}'" ; fi
-if [ "$limit" != "" ] ; then ram="--cpus='${limit}'" ; fi
+if [ "$ram" != "" ] ; then ram="--memory=${ram} --memory-swap=${ram}" ; fi
+if [ "$limit" != "" ] ; then limit="--cpus=${limit}" ; fi
 if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
 if [ "$start" == "" ] ; then start="h" ; fi
 

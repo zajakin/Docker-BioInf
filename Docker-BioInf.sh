@@ -7,11 +7,11 @@ tee Settings.ini << END
 #for Google smtp_url="smtps://[user[:pass]@]smtp.gmail.com" https://ec.haxx.se/usingcurl/usingcurl-smtp#secure-mail-transfer
 smtp_url="smtp://10.1.0.4" # smtp_url="smtp[s]://[user[:pass]@]host[:port]"
 admin="admin@edu.eu"
-if [ "$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
+if [ "\$base" == "" ] ; then base="serv1.edu.eu" ; fi # Required
 alias4SSL="" # "" or "-d second.domain.edu -d test.domain.edu"
-if [ "$quota" == "" ] ; then quota="10G" ; fi  # HDD quota "200M" or "10G" or "1T"
-if [ "$ram" == "" ] ; then ram="4g" ; fi  # RAM quota "200m" or "10g"; should be a positive integer followed by the suffix m or g (short for megabytes, or gigabytes)
-if [ "$limit" == "" ] ; then limit="4.0" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
+if [ "\$quota" == "" ] ; then quota="10G" ; fi  # HDD quota "200M" or "10G" or "1T"
+if [ "\$ram" == "" ] ; then ram="4g" ; fi  # RAM quota "200m" or "10g"; should be a positive integer followed by the suffix m or g (short for megabytes, or gigabytes)
+if [ "\$limit" == "" ] ; then limit="4.0" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
 END
 source Settings.ini
 fi
@@ -130,6 +130,7 @@ echo $nuser
 docker top $nuser 
 docker restart $nuser 
 awk -F"\t" "/$nuser/ {print \$NF}" staff.tsv | xargs -l1 bash -c 
+awk -F"\t" "/$nuser/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 docker stop $nuser 
 docker rm $nuser 
 # docker volume rm $nuser
