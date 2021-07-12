@@ -101,8 +101,10 @@ awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
 awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
+# update staff's dockers
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /etc/supervisor/conf.d/update.sh
 # Check the mounted folders for staff
-mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -v -f mounted.lst staff.lst > mount.lst 
+mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
 echo "  Mounted" && grep -f mounted.lst staff.lst && echo "  Not mounted" && grep -v -f mounted.lst staff.lst
 # check users and space
