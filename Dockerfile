@@ -7,7 +7,7 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		locales sudo mc wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
 		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 \
-		policykit-1-gnome dbus-x11 firefox-esr shotwell zathura geany meld fonts-firacode \
+		policykit-1-gnome dbus-x11 firefox-esr gpicview zathura geany meld fonts-firacode \
 		build-essential gfortran libgfortran-10-dev liblapack-dev libblas-dev libopenblas-dev \
 		libxml2-dev libjpeg-dev libcurl4-openssl-dev libssl-dev zlib1g-dev \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask synaptic xarchiver \
@@ -15,10 +15,10 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
 		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt fastqc samtools ncbi-blast+ kraken2 python3-htseq rna-star \
 		fastp cnvkit seqtk cufflinks bbmap trnascan-se trimmomatic radiant picard-tools \
-		sortmerna bcftools gnumeric bedtools gffread && \
+		sortmerna bcftools gnumeric bedtools gffread igv tophat fastx-toolkit && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   # tophat fastx-toolkit 
+# GTK 2 and 3 settings for icons and style, wallpaper
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
