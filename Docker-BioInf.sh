@@ -61,6 +61,7 @@ fi
 wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 chmod +x Docker-BioInf-per-student.sh
 # docker pull debian:testing
+docker pull ghcr.io/zajakin/docker-bioinf:master
 docker pull zajakin/docker-bioinf
 # rm -r Docker-BioInf
 # mkdir Docker-BioInf
@@ -99,6 +100,8 @@ exit  # Not start later code automatically
 #run command for users
 awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
+# lazy unmount 
+awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/fusermount -u/fusermount -zu/g' | xargs -l1 bash -c 
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
 awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
 # update staff's dockers
