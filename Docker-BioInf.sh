@@ -60,9 +60,7 @@ docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v 
 fi
 wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Docker-BioInf-per-student.sh -O Docker-BioInf-per-student.sh
 chmod +x Docker-BioInf-per-student.sh
-# docker pull debian:testing
-docker pull ghcr.io/zajakin/docker-bioinf:master
-docker pull zajakin/docker-bioinf
+docker pull ghcr.io/zajakin/docker-bioinf
 # rm -r Docker-BioInf
 # mkdir Docker-BioInf
 # wget --no-cache https://github.com/zajakin/Docker-BioInf/raw/master/Dockerfile -O Docker-BioInf/Dockerfile

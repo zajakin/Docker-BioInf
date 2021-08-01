@@ -20,8 +20,6 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  GHCR_IMAGE_NAME: $(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
-
 
 jobs:
   build:
