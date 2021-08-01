@@ -20,6 +20,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  GHCR_IMAGE_NAME: $(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
 
 
 jobs:
@@ -59,5 +60,5 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME.lowercase }}:latest
+          tags: ${{ steps.meta.outputs.tags }},${{ env.REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
