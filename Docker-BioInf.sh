@@ -100,6 +100,8 @@ awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
 # lazy unmount 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/fusermount -u/fusermount -zu/g' | xargs -l1 bash -c 
+# unmount all
+awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/;.*/"/g' | xargs -l1 bash -c 
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
 awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
 # update staff's dockers
@@ -149,7 +151,8 @@ docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
 # docker rm $(docker ps -a -q)
 # Remove all docker images
 # docker rmi $(docker images -q)
-# Remove docker images without correct names
+# Remove all Docker volumes
+# docker volume rm $(docker volume ls | awk '!/^DRIVER/{print $2}')
 # Old versions of Docker images
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | sort | uniq | xargs -i grep "  {}  " dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 #Volumes
@@ -157,4 +160,4 @@ docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | s
 # Actual versions
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep "  {}  " dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 # Remove not used Docker images
-docker rmi $(docker images | awk '{print $3}') 
+docker rmi $(docker images | awk '!/^REPOSITORY/{print $3}')

@@ -332,7 +332,7 @@ redirect_stderr=true
 docker run -d --hostname="$(echo $base | cut -d'.' -f1)_$nuser" --name=$nuser --workdir /home/$nuser $ram $limit \
   -p ${portD}0:443 -p ${portD}1:${portD}1/udp -p ${portD}2:22 -p ${portD}3:${portD}3 -p ${portD}4:${portD}4 -p ${portD}5:${portD}5 \
 	-v $nuser:/home/$nuser -v data:/data -v /home/$nuser/setup:/etc/supervisor/conf.d -v cert:/cert:ro -v /home/$nuser/log:/var/log \
-	--shm-size=2g --restart always zajakin/docker-bioinf
+	--shm-size=2g --restart always ghcr.io/zajakin/docker-bioinf
 
 echo -e "[program:1_novnc_1_novnc]
 command=websockify --web=/usr/share/novnc/ 6000 localhost:5902
