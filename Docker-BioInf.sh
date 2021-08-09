@@ -21,12 +21,12 @@ sudo apt upgrade -y --no-install-recommends
 sudo apt dist-upgrade -y --no-install-recommends
 sudo apt autoremove -y
 sudo apt autoclean -y
-if [ `docker images zajakin/docker-bioinf | wc -l` -lt 2 ]; then
+if [ `docker images ghcr.io/zajakin/docker-bioinf | wc -l` -lt 2 ]; then
   sudo sed -i 's/#user_allow_other/user_allow_other/' /etc/fuse.conf
 	sudo apt install docker-compose quota curl letsencrypt -y --no-install-recommends
 	sudo addgroup $USER docker
 	sudo systemctl enable docker
-	cat /etc/fstab | grep quota  # should be usrquota,grpquota,jqfmt=vfsv1  sudo mcedit /etc/fstab
+	cat /etc/fstab | grep quota  # should be grpjquota=quota.group,usrjquota=quota.user,jqfmt=vfsv1  sudo nano /etc/fstab
 	sudo quotacheck -ugM -F vfsv1 /
 	sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="cgroup_enable=memory swapaccount=1"/' /etc/default/grub && sudo update-grub
 	read -p "To apply changes please restart computer.
@@ -50,8 +50,9 @@ fi
 # cat self.key self.pem > certificate.pem
 docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
 	fi
-	docker pull docker.io/nicolargo/glances
-	docker run -d --name=monitoring --restart="always" --net=host --privileged -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host docker.io/nicolargo/glances
+	docker pull nicolargo/glances:alpine-latest-full
+	docker run -d --name=monitoring --restart="always"            --privileged -e GLANCES_OPT="-w" -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host --network host nicolargo/glances:alpine-latest-full
+
 
 	sudo mkdir -p /data
 	sudo chmod +rx /data
