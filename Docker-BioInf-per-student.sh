@@ -479,7 +479,7 @@ Addresses:
    or ssh://${nuser}@${base}:${portD}2
 3) mosh ${nuser}@${base} -p ${portD}1 --ssh="ssh -p ${portD}2"
 4) RStudio (should be started in Dashboard) - $URLr
-5) Jupier notebook (should be started in Dashboard) - $URLj 
+5) Jupyter notebook (should be started in Dashboard) - $URLj 
 6) ShellInABox (should be started in Dashboard) - $URLb 
 7) VNC (should be started in Dashboard) - $URLn
 8) Download files from docker ${URLp}/home/
