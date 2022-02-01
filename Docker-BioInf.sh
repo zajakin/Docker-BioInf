@@ -107,9 +107,9 @@ awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/fusermount -u/fusermount -zu/g
 # unmount all
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/;.*/"/g' | xargs -l1 bash -c 
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
-awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/sbin/nginx -s reload
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
 # update staff's dockers
-awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /etc/supervisor/conf.d/update.sh
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 7_update
 # Check the mounted folders for staff
 mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
@@ -139,6 +139,8 @@ echo $nuser
 docker top $nuser 
 docker restart $nuser 
 awk -F"\t" "/$nuser/ {print \$NF}" staff.tsv | xargs -l1 bash -c 
+docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
+docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
 awk -F"\t" "/$nuser/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 docker stop $nuser 
 docker rm $nuser 
