@@ -141,6 +141,7 @@ docker restart $nuser
 awk -F"\t" "/$nuser/ {print \$NF}" staff.tsv | xargs -l1 bash -c 
 docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
 docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
+docker exec $nuser /etc/supervisor/conf.d/update.sh
 awk -F"\t" "/$nuser/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
 docker stop $nuser 
 docker rm $nuser 
