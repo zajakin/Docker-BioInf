@@ -109,7 +109,7 @@ awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/;.*/"/g' | xargs -l1 bash -c
 # reload NGINX in staff's dockers (to update Letsencrypt certificate)
 awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
 # update staff's dockers
-awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 7_update
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update
 # Check the mounted folders for staff
 mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
 awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 

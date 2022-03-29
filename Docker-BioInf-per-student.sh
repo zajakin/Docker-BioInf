@@ -103,7 +103,7 @@ dhparam=/cert/dhparam.pem
 
 tee update.sh << END > /dev/null
 #!/bin/bash
-env DEBIAN_FRONTEND=noninteractive apt-get update -y
+env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change
 env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
 env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
