@@ -1,6 +1,6 @@
 FROM debian:testing
 RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
-  env DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change  && \
+  env DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils && \
 	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
