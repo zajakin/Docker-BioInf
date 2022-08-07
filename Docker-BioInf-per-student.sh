@@ -461,10 +461,12 @@ done
 docker exec -it $nuser pkill supervisord
 popd > /dev/null
 echo -e "User:\t$nuser\tPassword:\t$pass\tAddress:\t$URLp" > docker.txt
+messageID=`echo $((date && echo $email) | md5sum | awk '{print$1}')@$base`
 tee mail.txt << END
 From: <$admin>
 CC: <$admin>
 To: <$email>
+Message-ID: <$messageID>
 Subject: Access to Docker container
  
 Hi!
