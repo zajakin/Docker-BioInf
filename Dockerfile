@@ -38,9 +38,11 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.utf8 UTF-8/' /etc/locale.gen && \
 	locale-gen && \
 	mkdir -p /run/sshd /var/log/supervisor && \
 	echo "export VISIBLE=now" >> /etc/profile
-RUN -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudio-server-latest-amd64.deb
-#RUN curl -o rstudio-server-latest-amd64.deb https://s3.amazonaws.com/rstudio-server/server/bionic/amd64/rstudio-server-2022.07.1-554-amd64.deb
-RUN env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && \
+RUN  wget -nv http://ftp.de.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1o-1_amd64.deb && \
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./libssl1.1_1.1.1o-1_amd64.deb && \
+	rm libssl1.1_1.1.1o-1_amd64.deb
+RUN wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudio-server-latest-amd64.deb && \
+  env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y && \
 	rm rstudio-server-latest-amd64.deb
