@@ -5,7 +5,7 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
 	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		locales sudo mc wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
+		locales sudo mc curl wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam \
 		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 \
 		policykit-1-gnome dbus-x11 firefox-esr gpicview zathura geany meld fonts-firacode \
 		build-essential gfortran libgfortran-10-dev liblapack-dev libblas-dev libopenblas-dev \
@@ -38,7 +38,7 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.utf8 UTF-8/' /etc/locale.gen && \
 	locale-gen && \
 	mkdir -p /run/sshd /var/log/supervisor && \
 	echo "export VISIBLE=now" >> /etc/profile
-RUN wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudio-server-latest-amd64.deb && \
+RUN "wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudio-server-latest-amd64.deb" && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y && \
