@@ -51,7 +51,7 @@ fi
 docker volume create --opt type=volume --opt device=`pwd`/cert --name cert # -v cert:/cert:ro
 	fi
 	glances="nicolargo/glances:alpine-latest-full"
-	glances="nicolargo/glances:3.2.1-full"
+	# glances="nicolargo/glances:3.2.1-full"
 	docker pull $glances
 	if [ ! -e ./glances.conf ]; then wget --no-cache https://raw.githubusercontent.com/nicolargo/glances/develop/docker-compose/glances.conf -O glances.conf ; fi
 	docker run -d --name=monitoring --restart="always" --privileged -e GLANCES_OPT="-w" -v `pwd`/glances.conf:/glances/conf/glances.conf -v /etc/passwd:/etc/passwd:ro -v /var/run/docker.sock:/var/run/docker.sock:ro --pid host --network host $glances
