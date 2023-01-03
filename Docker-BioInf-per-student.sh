@@ -204,13 +204,14 @@ http {
 			proxy_read_timeout 20d;
 			proxy_buffering off;
 		}
+		rewrite ^/stable-(.*)\$ $URLv/stable-\$1 permanent; 
 		rewrite ^/v\$ $URLv/ permanent; 
 		location /v/ {
-			# rewrite ^/v/(.*)\$ /\$1 break;
+			rewrite ^/v/(.*)\$ /\$1 break;
 			auth_pam                "Secure zone";
 			auth_pam_service_name   "nginx";
 			proxy_pass http://localhost:8000 ;
-			proxy_redirect http://localhost:8000/v ${URLv} ;
+			proxy_redirect http://localhost:8000 ${URLv} ;
 			proxy_set_header X-Real-IP \$remote_addr;
 			proxy_set_header Host \$host:${portD}0;
 			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -466,7 +467,7 @@ redirect_stderr=true
 ' > restart_server.conf
 
 echo -e "[program:9_VS_Code]
-command=code-server serve-local --disable-telemetry --without-connection-token --accept-server-license-terms --host 0.0.0.0
+command=code-server serve-local --disable-telemetry --without-connection-token --accept-server-license-terms --host 127.0.0.1
 stdout_logfile=/var/log/VS.log
 autostart=$startv
 autorestart=true
