@@ -147,6 +147,7 @@ docker stop $nuser
 docker rm $nuser 
 # docker volume rm $nuser
 # sudo userdel --remove $nuser
+awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} bash -c "apt-mark showmanual | grep -vFf /image_packages.txt > /etc/supervisor/conf.d/installed_packages.txt"
 
 # Stop all dockers
 docker stop $(docker ps -a -q)

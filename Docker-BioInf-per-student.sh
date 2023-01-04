@@ -91,7 +91,7 @@ do
 	fi
 done
 
-rm -rf /home/$nuser/setup /home/$nuser/log
+# rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 chmod +x ./command
 ./command
@@ -290,6 +290,7 @@ http {
 # ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
 OLDCONF=\$(dpkg -l|grep "^rc"|awk '{print \$2}')
 env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
+apt-mark showmanual | grep -vFf /image_packages.txt > /etc/supervisor/conf.d/installed_packages.txt
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 rm -f /home/$nuser/core &> /dev/null
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
@@ -528,5 +529,6 @@ END
 if [ ! "$email" == "" ] ; then
 	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
+./command
 exit # exit from su
 cd ~
