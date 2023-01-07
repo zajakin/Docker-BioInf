@@ -46,6 +46,6 @@ RUN wget -nv https://www.rstudio.org/download/latest/stable/server/bionic/rstudi
 	apt-get autoremove -y && \
 	apt-get autoclean -y && \
 	rm rstudio-server-latest-amd64.deb
-RUN wget -q -O- https://aka.ms/install-vscode-server/setup.sh | sh # vscode requirements gnome-keyring python3-minimal ca-certificates
+#RUN wget -q -O- https://aka.ms/install-vscode-server/setup.sh | sh # vscode requirements gnome-keyring python3-minimal ca-certificates
 RUN apt-mark showmanual > /image_packages.txt
 CMD ["/usr/bin/supervisord"]

@@ -110,14 +110,14 @@ env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommen
 env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
 env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
 env DEBIAN_FRONTEND=noninteractive apt-get clean -y
-for pic in supervisor rstudio VS noVNC jupyter shellinabox
+for pic in supervisor rstudio noVNC jupyter shellinabox   #  VS
 do
 	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
 done
 ln -sf /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
+sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><!--td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td--><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
 if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
@@ -204,23 +204,23 @@ http {
 			proxy_read_timeout 20d;
 			proxy_buffering off;
 		}
-		rewrite ^/stable-(.*)\$ $URLv/stable-\$1 permanent; 
-		rewrite ^/v\$ $URLv/ permanent; 
-		location /v/ {
-			rewrite ^/v/(.*)\$ /\$1 break;
-			auth_pam                "Secure zone";
-			auth_pam_service_name   "nginx";
-			proxy_pass http://localhost:8000 ;
-			proxy_redirect http://localhost:8000 ${URLv} ;
-			proxy_set_header X-Real-IP \$remote_addr;
-			proxy_set_header Host \$host:${portD}0;
-			proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-			proxy_http_version 1.1;
-			proxy_set_header Upgrade \$http_upgrade;
-			proxy_set_header Connection \$connection_upgrade;
-			proxy_read_timeout 20d;
-			proxy_buffering off;
-		}
+		# rewrite ^/stable-(.*)\$ $URLv/stable-\$1 permanent; 
+		# rewrite ^/v\$ $URLv/ permanent; 
+		# location /v/ {
+		# 	rewrite ^/v/(.*)\$ /\$1 break;
+		# 	auth_pam                "Secure zone";
+		# 	auth_pam_service_name   "nginx";
+		# 	proxy_pass http://localhost:8000 ;
+		# 	proxy_redirect http://localhost:8000 ${URLv} ;
+		# 	proxy_set_header X-Real-IP \$remote_addr;
+		# 	proxy_set_header Host \$host:${portD}0;
+		# 	proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+		# 	proxy_http_version 1.1;
+		# 	proxy_set_header Upgrade \$http_upgrade;
+		# 	proxy_set_header Connection \$connection_upgrade;
+		# 	proxy_read_timeout 20d;
+		# 	proxy_buffering off;
+		# }
 		rewrite ^/j\$ $URLj/ permanent; 
 		location /j/ {
 			# rewrite ^/j/(.*)\$ /\$1 break;
@@ -467,17 +467,17 @@ numprocs=1
 redirect_stderr=true
 ' > restart_server.conf
 
-echo -e "[program:9_VS_Code]
-command=code-server serve-local --disable-telemetry --without-connection-token --accept-server-license-terms --host 127.0.0.1
-stdout_logfile=/var/log/VS.log
-autostart=$startv
-autorestart=true
-user=root
-stopsignal=TERM
-numprocs=1
-redirect_stderr=true
-" > VS_Code.conf
-
+# echo -e "[program:9_VS_Code]
+# command=code-server serve-local --disable-telemetry --without-connection-token --accept-server-license-terms --host 127.0.0.1
+# stdout_logfile=/var/log/VS.log
+# autostart=$startv
+# autorestart=true
+# user=root
+# stopsignal=TERM
+# numprocs=1
+# redirect_stderr=true
+# " > VS_Code.conf
+# 
 chmod +r *
 while [ `docker top $nuser | grep -c /usr/bin/supervisord` -ne 1 ]
 do
