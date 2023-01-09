@@ -11,7 +11,7 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list && \
 		build-essential gfortran libgfortran-10-dev liblapack-dev libblas-dev libopenblas-dev \
 		libxml2-dev libjpeg-dev libcurl4-openssl-dev libssl-dev zlib1g-dev \
 		lxde-core lxlauncher lxterminal lxmenu-data lxtask synaptic xarchiver \
-		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension novnc xbase-clients \
+		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension tigervnc-tools novnc xbase-clients \
 		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt fastqc samtools ncbi-blast+ kraken2 python3-htseq rna-star \
 		fastp cnvkit seqtk cufflinks bbmap trnascan-se trimmomatic radiant picard-tools \
