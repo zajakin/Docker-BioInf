@@ -91,7 +91,7 @@ do
 	fi
 done
 
-# rm -rf /home/$nuser/setup /home/$nuser/log
+rm /home/$nuser/setup/setup.done #  -rf /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 chmod +x ./command
 ./command
@@ -120,6 +120,7 @@ cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dis
 sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><!--td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td--><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
   <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 if [ ! -e "/etc/nginx/nginx.dist" ] ; then mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist ; fi
+if [ ! -d /home/$nuser/.ssh ] ; then mkdir --mode=700 /home/$nuser/.ssh && chown ${nuser}:${nuser} /home/$nuser/.ssh
 if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
 else cp -pf /home/$nuser/.ssh/serverkeys/ssh_host* /etc/ssh ; fi
 if [ `cat /etc/ssh/sshd_config | grep -c "^X11UseLocalhost no"` -eq 0 ] ; then echo "X11UseLocalhost no" >> /etc/ssh/sshd_config ; fi
@@ -309,6 +310,7 @@ if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	echo $pass | vncpasswd -f > /home/$nuser/.vnc/passwd
 	cp -r -n /etc/skel/.[!.]* /home/$nuser
 	chown -R $nuser /home/$nuser
+	[ -e /etc/supervisor/conf.d/installed_packages.txt ] && env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change &&  env DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y `cat /etc/supervisor/conf.d/installed_packages.txt | tr '\n' ' '`
 	/etc/supervisor/conf.d/update.sh
 	mv /etc/supervisor/conf.d/setup.conf /etc/supervisor/conf.d/setup.done
 	/usr/bin/pkill supervisord
