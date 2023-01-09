@@ -61,6 +61,7 @@ echo $start | sudo tee start > /dev/null
 echo $email | sudo tee email > /dev/null
 echo $command | sudo tee command > /dev/null
 
+sudo rm -f /home/$nuser/setup/setup.done
 sudo su $nuser
 admin=`cat admin`
 smtp_url=`cat smtp_url`
@@ -91,7 +92,7 @@ do
 	fi
 done
 
-rm /home/$nuser/setup/setup.done #  -rf /home/$nuser/log
+# rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
 chmod +x ./command
 ./command
