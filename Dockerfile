@@ -1,5 +1,5 @@
 FROM debian:testing
-RUN ls -1 /etc/apt/ && sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.list && \
+RUN ls -1 /etc/apt/sources.list.d && sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.list && \
   env DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils whiptail && \
 	env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends && \
