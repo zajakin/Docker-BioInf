@@ -494,8 +494,9 @@ done
 docker exec -it $nuser pkill supervisord
 popd > /dev/null
 echo -e "User:\t$nuser\tPassword:\t$pass\tssh:\tssh -X ${nuser}@${base} -p ${portD}2\tor web-ddress:\t$URLp" > docker.txt
-messageID=`echo $((date && echo $email) | md5sum | awk '{print$1}')@$base`
-tee mail.txt << END
+if [ ! "$email" == "#" ] ; then
+  messageID=`echo $((date && echo $email) | md5sum | awk '{print$1}')@$base`
+  tee mail.txt << END
 From: <$admin>
 CC: <$admin>
 To: <$email>
@@ -528,8 +529,6 @@ If you can not access to Docker container from home:
 Server tasks monitoring http://${base}:61208 
 .
 END
-
-if [ ! "$email" == "" ] ; then
 	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 ./command

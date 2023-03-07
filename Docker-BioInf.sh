@@ -84,7 +84,7 @@ if [ ! -e "users.tsv" ]; then
 	do
 [ `grep -c "^$i$" usedports` != 0 ] && continue
 [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ] && continue
-echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-r\t$ram\t-l\t$limit\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\tbrnh\t-m\t\t-c\t" >> users.tsv
+echo -e "-u\tuser$i\t-b\t$base\t-o\t$i\t-q\t$quota\t-r\t$ram\t-l\t$limit\t-p\t$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8)\t-s\tbrnh\t-m\t#\t-c\t#" >> users.tsv
 count=$[count-1]
 [ $count == 0 ] && break
 	done
