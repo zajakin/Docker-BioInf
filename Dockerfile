@@ -17,7 +17,7 @@ RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.l
 		fastp cnvkit seqtk cufflinks bbmap trnascan-se trimmomatic radiant picard-tools \
 		sortmerna bcftools gnumeric bedtools gffread igv && \
 	apt-get autoremove -y && \
-	apt-get autoclean -y
+	apt-get autoclean  -y
 # GTK 2 and 3 settings for icons and style, wallpaper   # tophat fastx-toolkit 
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
