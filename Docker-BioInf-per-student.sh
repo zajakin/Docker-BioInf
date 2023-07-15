@@ -529,7 +529,7 @@ If you can not access to Docker container from home:
 Server tasks monitoring http://${base}:61208 
 .
 END
-	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
+	# /usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
 fi
 ./command
 exit # exit from su
