@@ -169,3 +169,19 @@ docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -e "[0-9]" | s
 docker ps -a > dockers && docker ps -a  | awk '{print $2}' | grep -v "ID" | grep -v -e "[0-9]" | sort | uniq | xargs -i grep "  {}  " dockers | awk '{print $2 "\t" $4 " " $5 " " $6 "\t" $7 " " $8 " " $9 "\t" $NF}'
 # Remove not used Docker images
 docker rmi $(docker images | awk '!/^REPOSITORY/{print $3}')
+
+function lastVisit {
+  docker ps -a > dockers
+  for u in $(basename -a $(ls -d /home/*)); do
+    lastb=0
+    [ -e /home/$u/$u/.bash_history ] && lastb=`stat -c %Y /home/$u/$u/.bash_history`
+    lastw=0
+    [ $(grep -c -v ' - - ' /home/$u/log/nginx-access.log) -gt 0 ] && lastw=`grep -av ' - - ' /home/$u/log/nginx-access.log | awk 'END{gsub("\[",""); print $4}' | awk '{gsub("[/:]",FS,$0); print mktime(sprintf("%d %d %d %d %d %d",$3,(((index("JanFebMarAprMayJunJulAugSepOctNovDec",$2)-1)/3)+1),$1,$4,$5,$6) )}'`
+    last=$lastb
+    [ $lastb -lt $lastw ] && last=$lastw
+    echo -e "`date +'%Y-%m-%d' --date=@$last`\t`date +'%Y-%m-%d' --date=@$lastb`\t`date +'%Y-%m-%d' --date=@$lastw`\t$u\t`awk "/$u\$/{print \\$4 \\$5 \"_\" \\$7 \\$8 \\$9}" dockers`\t`cat /home/$u/setup/installed_packages.txt | tr '\n' ' '`"
+  done
+}
+docker ps -a | awk '{print $NF}' > dockers && awk '!/^#/ {print $2}' staff.tsv | grep -v -f dockers
+lastVisit | sort > users_$(date +'%Y-%m-%d').txt
+
