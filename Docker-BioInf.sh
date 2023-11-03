@@ -122,7 +122,7 @@ fi
   docker volume ls
   docker system df
   docker system df -v
-  
+   
   ls .. | xargs -i docker top {} | awk '{print $1}' | sort | uniq -c
   
   # Delete user*
