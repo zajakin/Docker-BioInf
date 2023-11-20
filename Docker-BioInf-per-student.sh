@@ -26,16 +26,16 @@ while getopts ":u:b:o:q:r:l:p:s:m:c:" opt; do
   esac
 done
 source Settings.ini
-echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram limit=$limit pass=$pass start=$start email=$email command=[$command]"
 if [ "$nuser" == "" ] ; then
 	echo "Error! No user name"
 	read -p "Press enter to continue"
 	exit
 fi
 if [ `docker ps -a | grep -c ${nuser}$` -ne 0 ] ; then 
-	echo "Error! User '$nuser' already have Docker container"
+	echo "User '$nuser' already have Docker container"
 	exit
 fi
+echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram limit=$limit pass=$pass start=$start email=$email command=[$command]"
 if [ "$base" == "" ] ; then exit; fi
 if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
 echo $portD >> usedports
