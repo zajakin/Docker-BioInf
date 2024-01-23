@@ -136,15 +136,15 @@ fi
   # Delete specific user
 nuser="user300"
   echo $nuser
-  docker top $nuser 
-  docker restart $nuser 
-  awk -F"\t" "/\t$nuser\t/ {print \$NF}" staff.tsv | xargs -l1 bash -c 
+  docker top $nuser
+  docker restart $nuser
+  awk -F"\t" "/\t$nuser\t/ {print \$NF}" staff.tsv | xargs -l1 bash -c
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   docker exec $nuser /etc/supervisor/conf.d/update.sh
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
-  docker stop $nuser 
-  docker rm $nuser 
+  docker stop $nuser
+  docker rm $nuser
   # docker volume rm $nuser
   # sudo userdel --remove $nuser
   awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} bash -c "apt-mark showmanual | grep -vFf /image_packages.txt > /etc/supervisor/conf.d/installed_packages.txt"
@@ -184,4 +184,4 @@ nuser="user300"
   }
   docker ps -a  --format '{{.Names}}' > dockers && awk '!/^#/ {print $2}' staff.tsv | grep -v -f dockers
   lastVisit | sort > users_$(date +'%Y-%m-%d').txt
-
+  cat users_$(date +'%Y-%m-%d').txt
