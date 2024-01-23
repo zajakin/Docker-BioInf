@@ -492,7 +492,7 @@ while [ `docker top $nuser | grep -c supervisor/conf.d/setup.sh` -ne 0 ]
 do
   sleep 1s
 done
-docker exec -it $nuser pkill supervisord
+docker exec $nuser pkill supervisord
 popd > /dev/null
 echo -e "User:\t$nuser\tPassword:\t$pass\tssh:\tssh -X ${nuser}@${base} -p ${portD}2\tor web-ddress:\t$URLp" > docker.txt
 if [ ! "$email" == "#" ] ; then
