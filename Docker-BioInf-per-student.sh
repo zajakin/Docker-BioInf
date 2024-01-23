@@ -60,6 +60,8 @@ echo $pass | sudo tee pass > /dev/null
 echo $start | sudo tee start > /dev/null
 echo $email | sudo tee email > /dev/null
 echo $command | sudo tee command > /dev/null
+chmod 555 ./command
+chown -R $nuser /home/$nuser/setup docker.txt mail.txt
 
 sudo rm -f /home/$nuser/setup/setup.done
 sudo su $nuser
@@ -94,7 +96,6 @@ done
 
 # rm -rf /home/$nuser/setup /home/$nuser/log
 mkdir -p /home/$nuser/setup /home/$nuser/$nuser/ /home/$nuser/log/supervisor
-chmod +x ./command
 ./command
 docker volume create --opt type=none --opt device=/home/$nuser/$nuser --opt o=bind,size=${quota}B,uid=$uid --name $nuser > /dev/null
 pushd /home/$nuser/setup  > /dev/null
@@ -311,7 +312,7 @@ if [ ! -e /etc/supervisor/conf.d/setup.done ]; then
 	echo $pass | vncpasswd -f > /home/$nuser/.vnc/passwd
 	cp -r -n /etc/skel/.[!.]* /home/$nuser
 	chown -R $nuser /home/$nuser
-	[ -e /etc/supervisor/conf.d/installed_packages.txt ] && env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change &&  env DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y `cat /etc/supervisor/conf.d/installed_packages.txt | tr '\n' ' '`
+	[ -e /etc/supervisor/conf.d/installed_packages.txt ] && env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change &&  env DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \`cat /etc/supervisor/conf.d/installed_packages.txt | tr '\n' ' '\`
 	/etc/supervisor/conf.d/update.sh
 	mv /etc/supervisor/conf.d/setup.conf /etc/supervisor/conf.d/setup.done
 	/usr/bin/pkill supervisord
