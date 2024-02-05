@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM  debian:testing
 RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources && \
   env DEBIAN_FRONTEND=noninteractive apt-get update --allow-releaseinfo-change && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils whiptail && \
