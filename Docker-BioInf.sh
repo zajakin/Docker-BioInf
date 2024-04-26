@@ -142,6 +142,7 @@ nuser="user300"
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   docker exec $nuser /etc/supervisor/conf.d/update.sh
+  docker exec $nuser apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
   docker rm $nuser
