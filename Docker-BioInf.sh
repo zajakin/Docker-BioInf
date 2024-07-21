@@ -100,16 +100,20 @@ fi
 
   exit  # Not start later code automatically
   #run command for users
-  awk -F"\t" '!/^#/ {print $NF}' users.tsv | xargs -l1 bash -c 
-  awk -F"\t" '!/^#/ {print $NF}' staff.tsv | xargs -l1 bash -c 
+  cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | xargs -l1 bash -c 
   # lazy unmount 
-  awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/fusermount -u/fusermount -zu/g' | xargs -l1 bash -c 
+  cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/fusermount -u/fusermount -zu/g' | xargs -l1 bash -c 
   # unmount all
-  awk -F"\t" '!/^#/ {print $NF}' staff.tsv | sed 's/;.*/"/g' | xargs -l1 bash -c 
-  # reload NGINX in staff's dockers (to update Letsencrypt certificate)
-  awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
+  cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/;.*/"/g' | xargs -l1 bash -c 
   # update staff's dockers
-  awk '!/^#/ {print $2}' staff.tsv | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive /etc/supervisor/conf.d/update.sh 2>&1 | grep -E "/home/|upgraded|dpkg|amd64"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
+  # reload NGINX in staff's dockers (to update Letsencrypt certificate)
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   # Check the mounted folders for staff
   mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
   awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
@@ -137,12 +141,14 @@ fi
 nuser="user300"
   echo $nuser
   docker top $nuser
+  docker logs $nuser
   docker restart $nuser
   awk -F"\t" "/\t$nuser\t/ {print \$NF}" staff.tsv | xargs -l1 bash -c
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   docker exec $nuser /etc/supervisor/conf.d/update.sh
-  docker exec $nuser apt --fix-broken install -y
+  docker exec -it $nuser bash
+  docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
   docker rm $nuser
