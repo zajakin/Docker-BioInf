@@ -7,7 +7,7 @@ RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.l
 	env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends && \
 	env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		locales sudo mc curl wget procps psmisc htop nginx-light libnginx-mod-http-auth-pam usrmerge \
-		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 \
+		shellinabox ssh mosh tmux supervisor bash-completion gpm bzip2 geany \
 		at-spi2-core policykit-1-gnome dbus-x11 firefox-esr gpicview zathura meld fonts-firacode \
 		build-essential gfortran libgfortran-13-dev liblapack-dev libblas-dev libopenblas-dev \
 		libxml2-dev libjpeg-dev libcurl4-openssl-dev libssl-dev zlib1g-dev \
@@ -19,7 +19,7 @@ RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.l
 		sortmerna bcftools gnumeric bedtools gffread igv && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   # apt-get install -y --no-install-recommends tophat fastx-toolkit geany
+# GTK 2 and 3 settings for icons and style, wallpaper   # apt-get install -y --no-install-recommends tophat fastx-toolkit
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
