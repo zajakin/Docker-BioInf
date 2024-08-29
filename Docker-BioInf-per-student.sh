@@ -61,9 +61,11 @@ echo $start | sudo tee start > /dev/null
 echo $email | sudo tee email > /dev/null
 echo $command | sudo tee command > /dev/null
 chmod 555 ./command
-chown -R $nuser /home/$nuser/setup docker.txt mail.txt
+ [ -d "/home/$nuser/setup" ] && chown -R $nuser /home/$nuser/setup
+ [ -e "docker.txt" ] && chown $nuser docker.txt
+ [ -e "mail.txt" ] && chown $nuser mail.txt
 
-sudo rm -f /home/$nuser/setup/setup.done
+ [ -e "/home/$nuser/setup/setup.done" ] && sudo rm -f /home/$nuser/setup/setup.done
 sudo su $nuser
 admin=`cat admin`
 smtp_url=`cat smtp_url`

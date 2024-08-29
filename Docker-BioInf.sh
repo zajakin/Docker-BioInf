@@ -92,10 +92,10 @@ fi
   		# if [ `grep -c "^$i$" usedports` -ne 0 ]; then continue; fi
   		# if [ -e "users.tsv" ] && [ `grep -c -P "\-o\t$i\t" users.tsv` != 0 ]; then continue; fi
   cat  users.tsv
-  cat users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
+  cat users.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 1 ./Docker-BioInf-per-student.sh
   # staff.tsv contains permament users.  User can be temporary excluded by symbol "#" in the beginning of row
   cat staff.tsv
-  grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
+  grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 1 ./Docker-BioInf-per-student.sh
   cat ../user*/docker.txt > docker.txt
 
   exit  # Not start later code automatically
