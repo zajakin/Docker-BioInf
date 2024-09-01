@@ -106,11 +106,17 @@ fi
   # unmount all
   cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/;.*/"/g' | xargs -l1 bash -c 
   # update staff's dockers
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 7_update
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo {} && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker top {} | grep dpkg | wc -l
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pkill dpkg
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive /etc/supervisor/conf.d/update.sh 2>&1 | grep -E "/home/|upgraded|dpkg|amd64"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py && /sbin/runuser -u {} -- jupyter notebook --generate-config -y && echo -e \"c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'\" | /sbin/runuser -u {} -- tee -a /home/{}/.jupyter/jupyter_notebook_config.py"
   # reload NGINX in staff's dockers (to update Letsencrypt certificate)
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd

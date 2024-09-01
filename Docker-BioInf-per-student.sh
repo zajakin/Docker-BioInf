@@ -121,8 +121,14 @@ done
 ln -sf /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 cp /usr/lib/python3/dist-packages/supervisor/ui/status.html /usr/lib/python3/dist-packages/supervisor/ui/status.dist
-sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><!--td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td--><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table>\
-  <div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+sed -i 's@      <ul class="clr" id="buttons">
+        <li class="action-button"><a href="index.html?action=refresh">Refresh</a></li>
+        <li class="action-button"><a href="index.html?action=restartall">Restart All</a></li>
+        <li class="action-button"><a href="index.html?action=stopall">Stop All</a></li>
+      </ul>
+@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+sed -i 's@<div id="header">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><!--td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td--><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table><div id="header" hidden="">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
+#sed -i 's@  <div class="push">@<table><tr align="center"><td><a href="${URLp}/home/"><h1>Home directory</h1></a></td><td><a href="${URLp}/public/"><h1>Public directory</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLr}"><img src="${URLp}/rstudio.png" /><br /><h1>R-Studio</h1></a></td><!--td><a href="${URLv}"><img src="${URLp}/VS.png" /><br /><h1>VS Code</h1></a></td--><td><a href="${URLj}"><img src="${URLp}/jupyter.png" /><br /><h1>Jupyter notebook</h1></a></td></tr><tr align="center" valign="bottom"><td><a href="${URLn}/vnc.html"><img src="${URLp}/noVNC.png" /><br /><h1>noVNC</h1></a></td><td><a href="${URLb}"><img src="${URLp}/shellinabox.png" /><br /><h1>Shell in a box</h1></a></td></tr><tr align="center"><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="https://github.com/zajakin/Docker-BioInf"><h3>Created by Docker-BioInf system</h3></a></td><td STYLE="border-style:solid; border-width:1px 1px 1px 1px"><a href="http://${base}:61208"><h3>Tasks monitoring</h3></a></td></tr></table><div class="push">@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
 [ ! -e "/etc/nginx/nginx.dist" ] && mv /etc/nginx/nginx.conf /etc/nginx/nginx.dist
 [ ! -d /home/$nuser/.ssh ] && mkdir --mode=700 /home/$nuser/.ssh && chown ${nuser}:${nuser} /home/$nuser/.ssh
 if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
@@ -298,6 +304,7 @@ env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
 apt-mark showmanual | grep -vFf /image_packages.txt > /etc/supervisor/conf.d/installed_packages.txt
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 rm -f /home/$nuser/core &> /dev/null
+rm -f /home/$nuser/.jupyter/jupyter_notebook_config.py
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
 echo -e "c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee -a /home/$nuser/.jupyter/jupyter_notebook_config.py
 END
