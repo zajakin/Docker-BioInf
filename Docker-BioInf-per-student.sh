@@ -108,12 +108,12 @@ dhparam=/cert/dhparam.pem
 
 tee update.sh << END > /dev/null
 #!/bin/bash
-env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change
-env DEBIAN_FRONTEND=noninteractive apt upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y &> /dev/null
-env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y &> /dev/null
-env DEBIAN_FRONTEND=noninteractive apt-get clean -y &> /dev/null
+env DEBIAN_FRONTEND=noninteractive apt-get update -y -q --allow-releaseinfo-change
+env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -q --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y -q --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y -qq
+env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y -qq
+env DEBIAN_FRONTEND=noninteractive apt-get clean -y -qq
 for pic in supervisor rstudio noVNC jupyter shellinabox   #  VS
 do
 	wget -q https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
