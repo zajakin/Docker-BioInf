@@ -116,7 +116,6 @@ fi
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py && /sbin/runuser -u {} -- jupyter notebook --generate-config -y && echo -e \"c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'\" | /sbin/runuser -u {} -- tee -a /home/{}/.jupyter/jupyter_notebook_config.py"
   # reload NGINX in staff's dockers (to update Letsencrypt certificate)
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd

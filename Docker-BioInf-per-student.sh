@@ -109,14 +109,14 @@ dhparam=/cert/dhparam.pem
 tee update.sh << END > /dev/null
 #!/bin/bash
 env DEBIAN_FRONTEND=noninteractive apt-get update -y --allow-releaseinfo-change
-env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y --no-install-recommends
-env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
-env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y
-env DEBIAN_FRONTEND=noninteractive apt-get clean -y
+env DEBIAN_FRONTEND=noninteractive apt upgrade -y --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt dist-upgrade -y --no-install-recommends
+env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y &> /dev/null
+env DEBIAN_FRONTEND=noninteractive apt-get autoclean -y &> /dev/null
+env DEBIAN_FRONTEND=noninteractive apt-get clean -y &> /dev/null
 for pic in supervisor rstudio noVNC jupyter shellinabox   #  VS
 do
-	wget https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
+	wget -q https://github.com/zajakin/Docker-BioInf/raw/master/images/\${pic}.png -O /usr/share/novnc/\${pic}.png
 done
 ln -sf /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 sed -i 's@^<table>.*</table>@@' /usr/lib/python3/dist-packages/supervisor/ui/status.html
@@ -131,10 +131,10 @@ sed -i 's@<div id="header">@<table><tr align="center"><td><a href="${URLp}/home/
 if [ ! -d /home/$nuser/.ssh/serverkeys ] ; then cp -r /etc/ssh /home/$nuser/.ssh/serverkeys
 else cp -pf /home/$nuser/.ssh/serverkeys/ssh_host* /etc/ssh ; fi
 [ `cat /etc/ssh/sshd_config | grep -c "^X11UseLocalhost no"` -eq 0 ] && echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
-mkdir /var/log/nginx
+[ ! -d "/var/log/nginx" ] && mkdir /var/log/nginx
 echo '@include common-auth' > /etc/pam.d/nginx
 usermod -aG shadow www-data
-mkdir /home/$nuser/public
+[ ! -d "/home/$nuser/public" ] && mkdir /home/$nuser/public
 chown ${nuser}:${nuser} /home/$nuser/public
 ln -sfn /home/$nuser/public /usr/share/novnc/public
 ln -sfn /home/$nuser /usr/share/novnc/home
@@ -297,13 +297,14 @@ http {
 }' > /etc/nginx/nginx.conf
 # ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
 OLDCONF=\$(dpkg -l|grep "^rc"|awk '{print \$2}')
-env DEBIAN_FRONTEND=noninteractive apt-get purge -y \$OLDCONF
+env DEBIAN_FRONTEND=noninteractive apt purge -y \$OLDCONF
 apt-mark showmanual | grep -vFf /image_packages.txt > /etc/supervisor/conf.d/installed_packages.txt
 rm -rf /root/.local/share/Trash/*/** &> /dev/null
 rm -f /home/$nuser/core &> /dev/null
 rm -f /home/$nuser/.jupyter/jupyter_notebook_config.py
 /sbin/runuser -u $nuser -- jupyter notebook --generate-config -y
-echo -e "c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee -a /home/$nuser/.jupyter/jupyter_notebook_config.py
+echo -e "c.NotebookApp.password = ''\nc.NotebookApp.token = ''\nc.JupyterHub.bind_url = 'http://0.0.0.0:8888'\nc.NotebookApp.base_url = '/j'" | /sbin/runuser -u $nuser -- tee -a /home/$nuser/.jupyter/jupyter_notebook_config.py &> /dev/null
+echo "Update finished."
 END
 # rm -rf /home/*/.local/share/Trash/*/** &> /dev/null
 # PASS=\$(python3 -c "from notebook.auth import passwd; print(passwd('$pass'))")
