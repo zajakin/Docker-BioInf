@@ -108,12 +108,18 @@ fi
   # update staff's dockers
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 7_update
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo {} && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker top {} | grep dpkg | wc -l
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)) | grep RUNNING"
+  cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 1_novnc_2_vnc)) | grep RUNNING"
+  cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 2_shellinaboxd)) | grep RUNNING"
+  cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 3_RStudio)) | grep RUNNING"
+  cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 4_jupyter_notebook)) | grep RUNNING"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "apt purge multiqc -y"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "/sbin/runuser -u {} -- pip install --break-system-packages multiqc"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pkill dpkg
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive /etc/supervisor/conf.d/update.sh 2>&1 | grep -E "/home/|upgraded|dpkg|amd64"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
   # reload NGINX in staff's dockers (to update Letsencrypt certificate)
