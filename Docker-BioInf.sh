@@ -13,8 +13,8 @@ if [ "\$quota" == "" ] ; then quota="10G" ; fi  # HDD quota "200M" or "10G" or "
 if [ "\$ram" == "" ] ; then ram="4g" ; fi  # RAM quota "200m" or "10g"; should be a positive integer followed by the suffix m or g (short for megabytes, or gigabytes)
 if [ "\$limit" == "" ] ; then limit="4.0" ; fi  # CPU quota "1.5" or "4.0"; should be a positive number
 END
-source Settings.ini
-fi
+  source Settings.ini
+  fi
 
   sudo apt update
   sudo apt upgrade -y --no-install-recommends
@@ -35,11 +35,11 @@ fi
   	sudo quota -vs $USER
   	# docker network create --driver macvlan --subnet=10.1.2.0/22 --gateway=10.1.0.1 -o parent=eno1 dockers-net
   	
-  	sudo certbot certonly --standalone --preferred-challenges http --allow-subset-of-names --expand -d $base $alias4SSL
+  	sudo certbot certonly --standalone --preferred-challenges http --allow-subset-of-names --expand -d $base $alias4SSL -m $admin
   	sudo openssl dhparam -out /etc/letsencrypt/dhparam.pem 2048
   	sudo chmod 755 /etc/letsencrypt/{archive,live}
-  	sudo ls -l /etc/letsencrypt/live/$base
-  	( sudo crontab -l | grep -v -F "certbot renew" ; echo "42 2 * * 7 certbot renew --quiet" ) | sudo crontab -
+  	sudo ls -l /etc/letsencrypt/live/$base && sudo certbot certificates
+  	( sudo crontab -l | grep -v -F "certbot renew" ; printf "42 2 * * 7 certbot renew --quiet && cat $(pwd)/staff.tsv $(pwd)/users.tsv | awk '%s/^#/ {print \$2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx" '!' ) | sudo crontab -
   	docker volume create --opt type=volume --opt device=/etc/letsencrypt --opt o=bind --name cert # -v cert:/cert:ro
   	if [ `docker volume ls | grep -c " cert\$"` -ne 1 ] ; then
   mkdir -p cert/live/$base/
@@ -106,22 +106,24 @@ fi
   # unmount all
   cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/;.*/"/g' | xargs -l1 bash -c 
   # update staff's dockers
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py"
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 7_update
+  # cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {}  bash -c "echo -n '{}    ' && /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker top {} | grep dpkg | wc -l
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 1_novnc_2_vnc)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 2_shellinaboxd)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 3_RStudio)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 4_jupyter_notebook)) | grep RUNNING"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 5_sshd)) | grep -v RUNNING"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 6_nginx)) | grep -v RUNNING"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "apt purge multiqc -y"
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "/sbin/runuser -u {} -- pip install --break-system-packages multiqc"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo -n '{}    ' &&  /sbin/runuser -u {} -- pip install --break-system-packages multiqc | grep -v already"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pkill dpkg
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive /etc/supervisor/conf.d/update.sh 2>&1 | grep -E "/home/|upgraded|dpkg|amd64"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
+  # cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
   # reload NGINX in staff's dockers (to update Letsencrypt certificate)
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
@@ -131,6 +133,7 @@ fi
   echo "  Mounted" && grep -f mounted.lst staff.lst && echo "  Not mounted" && grep -v -f mounted.lst staff.lst
   # check users and space
   cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
+  df -h | grep ^/dev/
   (sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
   docker ps -a --format '{{.Size}}  {{.Names}}' | sort -h
   docker images
@@ -158,6 +161,7 @@ nuser="user300"
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   docker exec $nuser /etc/supervisor/conf.d/update.sh
+  docker exec $nuser env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   docker exec -it $nuser bash
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
