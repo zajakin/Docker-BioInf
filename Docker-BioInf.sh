@@ -96,7 +96,7 @@ END
   # staff.tsv contains permament users.  User can be temporary excluded by symbol "#" in the beginning of row
   cat staff.tsv
   grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 1 ./Docker-BioInf-per-student.sh
-  cat ../user*/docker.txt > docker.txt
+  cat ~/../user*/docker.txt > docker.txt
 
   exit  # Not start later code automatically
   #run command for users
@@ -106,7 +106,6 @@ END
   # unmount all
   cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/;.*/"/g' | xargs -l1 bash -c 
   # update staff's dockers
-  # cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm -f /home/{}/.jupyter/jupyter_notebook_config.py"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {}  bash -c "echo -n '{}    ' && /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker top {} | grep dpkg | wc -l
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)) | grep RUNNING"
@@ -134,22 +133,22 @@ END
   # check users and space
   cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
   df -h | grep ^/dev/
-  (sudo repquota -as | awk '(NR<6) {print}'; sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print}' | sort -hr -k3)
+  sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print $3 "\t" $1}' | sort -hr
   docker ps -a --format '{{.Size}}  {{.Names}}' | sort -h
   docker images
   docker volume ls
   docker system df
   docker system df -v
    
-  ls .. | xargs -i docker top {} | awk '{print $1}' | sort | uniq -c
+  ls ~/.. | xargs -i docker top {} | awk '{print $1}' | sort | uniq -c
   
-  # Delete user*
-  ls .. | grep user
-  ls .. | grep user | xargs -l -P 10 docker stop
-  ls .. | grep user | xargs -l -P 10 docker rm
-  ls .. | grep user | xargs -l -P 10 docker volume rm
-  ls .. | grep user | xargs -l sudo userdel --remove
-  ls .. | grep user | wc -l
+  # Delete user*  to exlude user add to command " | grep -v user308 | grep -v user312 "
+  ls ~/.. | grep user
+  ls ~/.. | grep user | xargs -l -P 10 docker stop
+  ls ~/.. | grep user | xargs -l -P 10 docker rm
+  ls ~/.. | grep user | xargs -l -P 10 docker volume rm
+  ls ~/.. | grep user | xargs -l sudo userdel --remove
+  ls ~/.. | grep user | wc -l
   
   # Delete specific user
 nuser="user300"
@@ -205,5 +204,6 @@ nuser="user300"
     done
   }
   docker ps -a  --format '{{.Names}}' > dockers && awk '!/^#/ {print $2}' staff.tsv | grep -v -f dockers
-  lastVisit | sort > users_$(date +'%Y-%m-%d').txt
-  cat users_$(date +'%Y-%m-%d').txt
+  [ ! -d users ] && mkdir users
+  lastVisit | sort > users/users_$(date +'%Y-%m-%d').txt
+  cat users/users_$(date +'%Y-%m-%d').txt

@@ -1,85 +1,102 @@
 #!/usr/bin/bash
-while getopts ":u:b:o:q:r:l:p:s:m:c:" opt; do
-  case $opt in
-    u) nuser="$OPTARG"
-    ;;
-    b) base="$OPTARG"
-    ;;
-    o) portD="$OPTARG"
-    ;;
-    q) quota="$OPTARG"
-    ;;
-    r) ram="$OPTARG"
-    ;;
-    l) limit="$OPTARG"
-    ;;
-    p) pass="$OPTARG"
-    ;;
-    s) start="$OPTARG"
-    ;;
-    m) email="$OPTARG"
-    ;;
-    c) command="$OPTARG"
-    ;;
-    \?) echo "Invalid option -$OPTARG" >&2
-    ;;
-  esac
-done
-source Settings.ini
-if [ "$nuser" == "" ] ; then
-	echo "Error! No user name"
-	read -p "Press enter to continue"
-	exit
-fi
-if [ `docker ps -a | grep -c ${nuser}$` -ne 0 ] ; then 
-	echo "User '$nuser' already have Docker container"
-	exit
-fi
-echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram limit=$limit pass=$pass start=$start email=$email command=[$command]"
-if [ "$base" == "" ] ; then exit; fi
-if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
-echo $portD >> usedports
-if [ "$quota" == "" ] ; then quota="10G" ; fi
-if [ "$ram" != "" ] ; then ram="--memory=${ram} --memory-swap=${ram}" ; fi
-if [ "$limit" != "" ] ; then limit="--cpus=${limit}" ; fi
-if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
-if [ "$start" == "" ] ; then start="h" ; fi
+  while getopts ":u:b:o:q:r:l:p:s:m:c:" opt; do
+    case $opt in
+      u) nuser="$OPTARG"
+      ;;
+      b) base="$OPTARG"
+      ;;
+      o) portD="$OPTARG"
+      ;;
+      q) quota="$OPTARG"
+      ;;
+      r) ram="$OPTARG"
+      ;;
+      l) limit="$OPTARG"
+      ;;
+      p) pass="$OPTARG"
+      ;;
+      s) start="$OPTARG"
+      ;;
+      m) email="$OPTARG"
+      ;;
+      c) command="$OPTARG"
+      ;;
+      \?) echo "Invalid option -$OPTARG" >&2
+      ;;
+    esac
+  done
+  source Settings.ini
+  if [ "$nuser" == "" ] ; then
+  	echo "Error! No user name"
+  	read -p "Press enter to continue"
+  	exit
+  fi
+  if [ `docker ps -a | grep -c ${nuser}$` -ne 0 ] ; then 
+  	echo "User '$nuser' already have Docker container"
+  	exit
+  fi
+  echo "nuser=$nuser base=$base portD=$portD quota=$quota ram=$ram limit=$limit pass=$pass start=$start email=$email command=[$command]"
+  if [ "$base" == "" ] ; then exit; fi
+  if [ "$portD" == "" ] ; then portD=$[$(sort -nur usedports | head -n 1)+1]; fi
+  echo $portD >> usedports
+  if [ "$quota" == "" ] ; then quota="10G" ; fi
+  if [ "$ram" != "" ] ; then ram="--memory=${ram} --memory-swap=${ram}" ; fi
+  if [ "$limit" != "" ] ; then limit="--cpus=${limit}" ; fi
+  if [ "$pass" == "" ] ; then pass=$(cat /dev/urandom | tr -dc a-zA-Z0-9 | head -c8) ; fi
+  if [ "$start" == "" ] ; then start="h" ; fi
+  
+  sudo useradd -g docker -N -s /bin/bash --create-home $nuser
+  sudo setquota -u $nuser $quota $quota 0 0 /
+  cd /home/$nuser
+  # bind "set disable-completion on"
+  sudo tee .env <<END > /dev/null
+admin="$admin"
+smtp_url="$smtp_url"
+nuser="$nuser"
+base="$base"
+portD="$portD"
+quota="$quota"
+ram="$ram"
+limit="$limit"
+pass="$pass"
+start="$start"
+email="$email"
+END
+ sudo rm admin smtp_url nuser base portD quota ram limit pass start email &> /dev/null
+ # bind "set disable-completion off"
+  # echo $admin | sudo tee admin > /dev/null
+  # echo $smtp_url | sudo tee smtp_url > /dev/null
+  # echo $nuser | sudo tee nuser > /dev/null
+  # echo $base | sudo tee base > /dev/null
+  # echo $portD | sudo tee portD > /dev/null
+  # echo $quota | sudo tee quota > /dev/null
+  # echo $ram | sudo tee ram > /dev/null
+  # echo $limit | sudo tee limit > /dev/null
+  # echo $pass | sudo tee pass > /dev/null
+  # echo $start | sudo tee start > /dev/null
+  # echo $email | sudo tee email > /dev/null
+  echo $command | sudo tee command > /dev/null
+  chmod 555 ./command
+  [ -d "/home/$nuser/setup" ] && chown -R $nuser /home/$nuser/setup
+  [ -e "docker.txt" ] && chown $nuser docker.txt
+  [ -e "mail.txt" ] && chown $nuser mail.txt
 
-sudo useradd -g docker -N -s /bin/bash --create-home $nuser
-sudo setquota -u $nuser $quota $quota 0 0 /
-cd /home/$nuser
-echo $admin | sudo tee admin > /dev/null
-echo $smtp_url | sudo tee smtp_url > /dev/null
-echo $nuser | sudo tee nuser > /dev/null
-echo $base | sudo tee base > /dev/null
-echo $portD | sudo tee portD > /dev/null
-echo $quota | sudo tee quota > /dev/null
-echo $ram | sudo tee ram > /dev/null
-echo $limit | sudo tee limit > /dev/null
-echo $pass | sudo tee pass > /dev/null
-echo $start | sudo tee start > /dev/null
-echo $email | sudo tee email > /dev/null
-echo $command | sudo tee command > /dev/null
-chmod 555 ./command
- [ -d "/home/$nuser/setup" ] && chown -R $nuser /home/$nuser/setup
- [ -e "docker.txt" ] && chown $nuser docker.txt
- [ -e "mail.txt" ] && chown $nuser mail.txt
-
- [ -e "/home/$nuser/setup/setup.done" ] && sudo rm -f /home/$nuser/setup/setup.done
-sudo su $nuser
-admin=`cat admin`
-smtp_url=`cat smtp_url`
-nuser=`cat nuser`
+  [ -e "/home/$nuser/setup/setup.done" ] && sudo rm -f /home/$nuser/setup/setup.done
+  sudo su $nuser
+source .env
+# admin=`cat admin`
+# smtp_url=`cat smtp_url`
+# nuser=`cat nuser`
 uid=$(id -u $nuser)
 gid=$(id -g $nuser)
-base=`cat base`
-portD=`cat portD`
-quota=`cat quota`
-ram=`cat ram`
-limit=`cat limit`
-pass=`cat pass`
-start=`cat start`
-email=`cat email`
+# base=`cat base`
+# portD=`cat portD`
+# quota=`cat quota`
+# ram=`cat ram`
+# limit=`cat limit`
+# pass=`cat pass`
+# start=`cat start`
+# email=`cat email`
 URLp="https://${base}:${portD}0"
 URLs="${URLp}/s"
 URLn="${URLp}/n"
@@ -537,7 +554,7 @@ If you can not access to Docker container from home:
 Server tasks monitoring http://${base}:61208 
 .
 END
-	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt
+	/usr/bin/curl $smtp_url --mail-from $admin --mail-rcpt $email --upload-file mail.txt && rm mail.txt
 fi
 ./command
 exit # exit from su
