@@ -112,6 +112,7 @@ END
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 1_novnc_2_vnc)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 2_shellinaboxd)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 3_RStudio)) | grep RUNNING"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | sort -k2
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 4_jupyter_notebook)) | grep RUNNING"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 5_sshd)) | grep -v RUNNING"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 6_nginx)) | grep -v RUNNING"
@@ -134,7 +135,7 @@ END
   cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
   df -h | grep ^/dev/
   sudo repquota -as | awk '!($3~/K$/) && (NR>5) {print $3 "\t" $1}' | sort -hr
-  docker ps -a --format '{{.Size}}  {{.Names}}' | sort -h
+  docker ps -a --format '{{.Size}}  {{.Names}}' | sort -hr
   docker images
   docker volume ls
   docker system df
@@ -159,7 +160,7 @@ nuser="user300"
   awk -F"\t" "/\t$nuser\t/ {print \$NF}" staff.tsv | xargs -l1 bash -c
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
-  docker exec $nuser /etc/supervisor/conf.d/update.sh
+  docker exec -it $nuser /etc/supervisor/conf.d/update.sh
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   docker exec -it $nuser bash
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
