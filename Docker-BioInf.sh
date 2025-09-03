@@ -163,6 +163,7 @@ nuser="user300"
   docker exec -it $nuser /etc/supervisor/conf.d/update.sh
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   docker exec -it $nuser bash
+  wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && rm rstudio-server-latest-amd64.deb
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
