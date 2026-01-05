@@ -131,6 +131,10 @@ END
   mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
   awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
   echo "  Mounted" && grep -f mounted.lst staff.lst && echo "  Not mounted" && grep -v -f mounted.lst staff.lst
+  # View non staff dockers
+  docker ps -a --format '{{.Names}}' | grep -v -f staff.lst | grep -v "^user"
+  # View users without dockers
+  ls ~/.. > users.lst; grep -v -f staff.lst users.lst | grep -v "^user"
   # check users and space
   cat /etc/passwd | awk -F':' '/home/ {print $1 "\t" "\t" $6 "\t" "\t" $NF}'
   df -h | grep ^/dev/
@@ -163,7 +167,7 @@ nuser="user300"
   docker exec -it $nuser /etc/supervisor/conf.d/update.sh
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
   docker exec -it $nuser bash
-  wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && rm rstudio-server-latest-amd64.deb
+  rm rstudio-server-latest-amd64.deb; wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && rm rstudio-server-latest-amd64.deb
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
@@ -199,10 +203,10 @@ nuser="user300"
       lastb=0
       [ -e /home/$u/$u/.bash_history ] && lastb=`stat -c %Y /home/$u/$u/.bash_history`
       lastw=0
-      [ $(grep -c -v ' - - ' /home/$u/log/nginx-access.log) -gt 0 ] && lastw=`grep -av ' - - ' /home/$u/log/nginx-access.log | awk 'END{gsub("\[",""); print $4}' | awk '{gsub("[/:]",FS,$0); print mktime(sprintf("%d %d %d %d %d %d",$3,(((index("JanFebMarAprMayJunJulAugSepOctNovDec",$2)-1)/3)+1),$1,$4,$5,$6) )}'`
+      [ $(sudo grep -c -v ' - - ' /home/$u/log/nginx-access.log) -gt 0 ] && lastw=`sudo grep -av ' - - ' /home/$u/log/nginx-access.log | awk 'END{gsub("\[",""); print $4}' | awk '{gsub("[/:]",FS,$0); print mktime(sprintf("%d %d %d %d %d %d",$3,(((index("JanFebMarAprMayJunJulAugSepOctNovDec",$2)-1)/3)+1),$1,$4,$5,$6) )}'`
       last=$lastb
       [ $lastb -lt $lastw ] && last=$lastw
-      echo -e "`date +'%Y-%m-%d' --date=@$last`\t`date +'%Y-%m-%d' --date=@$lastb`\t`date +'%Y-%m-%d' --date=@$lastw`\t$u\t`awk "/$u\$/{print \\$4 \\$5 \"_\" \\$7 \\$8 \\$9}" dockers`\t`cat /home/$u/setup/installed_packages.txt | tr '\n' ' '`"
+      echo -e "`date +'%Y-%m-%d' --date=@$last`\t`date +'%Y-%m-%d' --date=@$lastb`\t`date +'%Y-%m-%d' --date=@$lastw`\t$u\t`awk "/$u\$/{print \\$4 \\$5 \"_\" \\$7 \\$8 \\$9}" dockers`\t`sudo cat /home/$u/setup/installed_packages.txt | tr '\n' ' '`"
     done
   }
   docker ps -a  --format '{{.Names}}' > dockers && awk '!/^#/ {print $2}' staff.tsv | grep -v -f dockers
