@@ -15,7 +15,7 @@ RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.l
 		tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension tigervnc-tools novnc xbase-clients \
 		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt fastqc samtools ncbi-blast+ kraken2 python3-htseq rna-star \
-		fastp cnvkit seqtk  bbmap trimmomatic radiant picard-tools \
+		fastp cnvkit seqtk bbmap trimmomatic radiant picard-tools \
 		sortmerna bcftools gnumeric bedtools gffread igv && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
