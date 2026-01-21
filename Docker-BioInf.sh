@@ -96,7 +96,7 @@ END
   # staff.tsv contains permament users.  User can be temporary excluded by symbol "#" in the beginning of row
   cat staff.tsv
   grep -h -v "^#" staff.tsv | uniq | tr '\t' ' ' | sudo xargs -l -P 1 ./Docker-BioInf-per-student.sh
-  cat ~/../user*/docker.txt > docker.txt
+  sudo sh -c 'cat /home/user*/docker.txt' | tee docker.txt
 
   exit  # Not start later code automatically
   #run command for users
