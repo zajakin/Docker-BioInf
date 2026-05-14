@@ -16,10 +16,10 @@ RUN sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.l
 		gdebi-core r-base-core git jupyter-notebook python3-pip \
 		bowtie bowtie2 cutadapt fastqc samtools ncbi-blast+ kraken2 python3-htseq rna-star trnascan-se \
 		fastp seqtk bbmap trimmomatic radiant picard-tools  \
-		sortmerna bcftools gnumeric bedtools gffread igv && \
+		sortmerna bcftools gnumeric bedtools gffread && \
 	apt-get autoremove -y && \
 	apt-get autoclean -y
-# GTK 2 and 3 settings for icons and style, wallpaper   # apt-get install -y --no-install-recommends tophat fastx-toolkit cufflinks cnvkit # lxqt-policykit policykit-1-gnome
+# GTK 2 and 3 settings for icons and style, wallpaper   # apt-get install -y --no-install-recommends igv tophat fastx-toolkit cufflinks cnvkit # lxqt-policykit policykit-1-gnome
 RUN echo 'gtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.gtkrc-2.0 && \
 	mkdir -p /etc/skel/.config/gtk-3.0 && \
 	echo '[Settings]\ngtk-theme-name="Raleigh"\ngtk-icon-theme-name="nuoveXT2"\n' > /etc/skel/.config/gtk-3.0/settings.ini && \
