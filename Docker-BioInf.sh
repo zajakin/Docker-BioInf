@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-
+ 
   # Settings can be edited in "Settings.ini"
   if [ -e "Settings.ini" ]; then source Settings.ini
   else
