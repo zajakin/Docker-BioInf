@@ -106,13 +106,13 @@ END
   # unmount all
   cat  staff.tsv users.tsv | awk -F"\t" '!/^#/ {print $NF}' | sed 's/;.*/"/g' | xargs -l1 bash -c 
   # update staff's dockers
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "rm /home/{}/.jupyter/jupyter_notebool_config.py"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {}  bash -c "echo -n '{}    ' && /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf start 7_update"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker top {} | grep dpkg | wc -l
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 7_update)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 1_novnc_2_vnc)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 2_shellinaboxd)) | grep RUNNING"
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 3_RStudio)) | grep RUNNING"
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | sort -k2
   cat  staff.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 4_jupyter_notebook)) | grep RUNNING"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 5_sshd)) | grep -v RUNNING"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && (/usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status | grep 6_nginx)) | grep -v RUNNING"
@@ -120,13 +120,19 @@ END
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo -n '{}    ' &&  /sbin/runuser -u {} -- pip install --break-system-packages multiqc | grep -v already"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pkill dpkg
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive /etc/supervisor/conf.d/update.sh 2>&1 | grep -E "/home/|upgraded|dpkg|amd64"
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo -n '{}    ' && env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a"
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "echo -n '{}    ' && env DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y"
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y jupyter-notebook
   # cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} pip install  --break-system-packages --upgrade --no-cache-dir notebook
   # reload NGINX in staff's dockers (to update Letsencrypt certificate)
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 5_sshd
+  
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | sort -k2
+  [ -e /data/rstudio-server-latest-amd64.deb ] && rm /data/rstudio-server-latest-amd64.deb
+  wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb -O /data/rstudio-server-latest-amd64.deb
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | awk '!/2026.06/ {print $1}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /data/rstudio-server-latest-amd64.deb
+
   # Check the mounted folders for staff
   mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
   awk -F"\t" '!/^#/ {print $NF}' staff.tsv | grep -f mount.lst | xargs -l1 bash -c 
@@ -166,8 +172,10 @@ nuser="user300"
   docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart 6_nginx
   docker exec -it $nuser /etc/supervisor/conf.d/update.sh
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive dpkg --configure --force-confold -a
+  docker exec $nuser /usr/bin/supervisorctl -c /etc/supervisor/conf.d/supervisord.conf stop 3_RStudio
   docker exec -it $nuser bash
   rm rstudio-server-latest-amd64.deb; wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./rstudio-server-latest-amd64.deb && rm rstudio-server-latest-amd64.deb
+  exit
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
