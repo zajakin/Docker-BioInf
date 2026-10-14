@@ -131,7 +131,7 @@ END
   cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | sort -k2
   [ -e /data/rstudio-server-latest-amd64.deb ] && rm /data/rstudio-server-latest-amd64.deb
   wget -nv https://www.rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb -O /data/rstudio-server-latest-amd64.deb
-  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | awk '!/2026.06/ {print $1}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /data/rstudio-server-latest-amd64.deb
+  cat  staff.tsv users.tsv | awk '!/^#/ {print $2}' | xargs -i docker exec {} bash -c "(echo -n '{}    ' && /sbin/rstudio-server version)" | awk '!/2026.09/ {print $1}' | xargs -i docker exec {} env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /data/rstudio-server-latest-amd64.deb
 
   # Check the mounted folders for staff
   mount | awk -F '/' '/\/home/ {print $4}' > mounted.lst && awk '!/^#/ {print $2}' staff.tsv > staff.lst && grep -vxf mounted.lst staff.lst > mount.lst 
@@ -179,6 +179,8 @@ nuser="user300"
   docker exec $nuser env DEBIAN_FRONTEND=noninteractive apt --fix-broken install -y
   awk -F"\t" "/\t$nuser\t/ {print}" staff.tsv | tr '\t' ' ' | sudo xargs -l -P 10 ./Docker-BioInf-per-student.sh
   docker stop $nuser
+  # sudo kill -9 `docker inspect -f '{{.State.Pid}}' $nuser`
+  # sudo kill -9 `sudo ps aux | grep containerd-shim | grep $(docker inspect -f '{{.Id}}' $nuser) | awk '{print $2}'`
   docker rm $nuser
   # docker volume rm $nuser
   # sudo userdel --remove $nuser
